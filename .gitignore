@@ -1,0 +1,5 @@
+.env
+work/
+.agents/
+.codex/
+outputs/

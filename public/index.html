@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="AI coaching for school, games, and sports.">
+  <title>NextMove</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#" data-view="dashboard"><span class="logo-mark" aria-hidden="true">↗</span>NextMove</a>
+      <p class="sidebar-tagline">AI coaching for school, games, and sports.</p>
+      <nav class="side-nav" aria-label="Main menu">
+        <button class="side-link active" data-view="dashboard"><i>⌂</i><span>Dashboard</span></button>
+        <button class="side-link" data-view="homework"><i>✎</i><span>Homework Tutor</span></button>
+        <button class="side-link" data-view="gaming"><i>⌁</i><span>Gaming Coach</span></button>
+        <button class="side-link" data-view="sports"><i>◉</i><span>Sports Coach</span></button>
+        <button class="side-link" data-view="coaches"><i>✦</i><span>Meet the Coaches</span></button>
+        <button class="side-link" data-view="games"><i>◆</i><span>Games & Coins</span></button>
+        <button class="side-link" data-view="reports"><i>▤</i><span>Reports</span></button>
+        <button class="side-link" data-view="account"><i>⚙</i><span>Account</span></button>
+      </nav>
+      <div class="sidebar-card">
+        <small>Privacy promise</small>
+        <p>Uploads are processed for one report and not stored by NextMove.</p>
+      </div>
+    </aside>
+
+    <div class="mobile-scrim hidden" id="mobileScrim"></div>
+
+    <main class="app-main">
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+        <div>
+          <span class="kicker" id="pageKicker">WELCOME BACK</span>
+          <h1 id="pageTitle">Dashboard</h1>
+        </div>
+        <div class="nav-actions">
+          <button class="coin-pill" id="coinPill" title="NextMove Coins"><span>◆</span> <b id="coinCount">0</b></button>
+          <button class="text-btn" id="loginBtn">Log in</button>
+          <button class="dark-btn" id="signupBtn">Get started →</button>
+          <button class="text-btn hidden" id="logoutBtn">Log out</button>
+        </div>
+      </header>
+
+      <section class="account-strip hidden" id="accountStrip">
+        <div>
+          <span class="status-dot"></span>
+          <b id="welcome"></b>
+          <small id="accountStatus"></small>
+        </div>
+        <button class="text-btn" id="historyBtn">My coaching history →</button>
+      </section>
+
+      <section class="view active" id="dashboardView">
+        <div class="hero-card">
+          <div>
+            <div class="eyebrow">AI COACHING THAT BUILDS REAL SKILL</div>
+            <h2>Find your <em>next move.</em></h2>
+            <p>Choose a tutor, upload the moment, and get specific coaching that helps you understand what to improve next.</p>
+            <button class="dark-btn hero-btn" id="heroStart">Start coaching <b>↗</b></button>
+            <small>Private by design · Parent consent for learners under 13</small>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="ring r1"></div>
+            <div class="ring r2"></div>
+            <div class="tile t1">✎<small>LEARN</small></div>
+            <div class="tile t2">⌁<small>PLAY</small></div>
+            <div class="tile t3">◉<small>TRAIN</small></div>
+          </div>
+        </div>
+
+        <div class="quick-grid">
+          <article class="quick-card" data-view="homework">
+            <i class="purple">✎</i>
+            <h3>Homework Tutor</h3>
+            <p>Guides step by step without giving the final answer.</p>
+          </article>
+          <article class="quick-card" data-view="gaming">
+            <i class="green">⌁</i>
+            <h3>Gaming Coach</h3>
+            <p>Reviews gameplay frames and gives tactical advice.</p>
+          </article>
+          <article class="quick-card" data-view="sports">
+            <i class="orange">◉</i>
+            <h3>Sports Coach</h3>
+            <p>Gives position-aware feedback from practice or game clips.</p>
+          </article>
+        </div>
+
+        <section class="coach-roster">
+          <div class="section-title compact-title">
+            <div>
+              <span class="kicker">MEET THE COACH SQUAD</span>
+              <h2>Pick the vibe that fits your next move.</h2>
+            </div>
+            <p>Original cartoon-style coaches with relatable themes — no celebrity, school, club, or anime lookalikes.</p>
+          </div>
+          <div class="coach-grid">
+            <article class="coach-card homework" data-view="homework" data-coach="Maya">
+              <div class="coach-art campus"><span>📚</span></div>
+              <small>HOMEWORK</small>
+              <h3>Maya</h3>
+              <p>Campus study mentor energy. Calm, smart, and great at breaking down messy homework.</p>
+            </article>
+            <article class="coach-card homework" data-view="homework" data-coach="Orion">
+              <div class="coach-art lab"><span>⚗</span></div>
+              <small>STEM</small>
+              <h3>Orion</h3>
+              <p>Lab-coat problem solver for math, science, and “wait, why does this work?” moments.</p>
+            </article>
+            <article class="coach-card gaming" data-view="gaming" data-coach="Byte">
+              <div class="coach-art tactics"><span>🎧</span></div>
+              <small>GAMING</small>
+              <h3>Byte</h3>
+              <p>Shot-caller with headset energy. Helps with positioning, timing, and decisions.</p>
+            </article>
+            <article class="coach-card gaming" data-view="gaming" data-coach="Drift">
+              <div class="coach-art mechanics"><span>⚡</span></div>
+              <small>MECHANICS</small>
+              <h3>Drift</h3>
+              <p>Fast, focused, and built for movement, aim, reactions, and repeatable practice.</p>
+            </article>
+            <article class="coach-card sports" data-view="sports" data-coach="Kai">
+              <div class="coach-art soccer"><span>⚽</span></div>
+              <small>SOCCER</small>
+              <h3>Kai</h3>
+              <p>Reads space, timing, and runs. Strong soccer-strategy vibe without copying any anime.</p>
+            </article>
+            <article class="coach-card sports" data-view="sports" data-coach="Riley">
+              <div class="coach-art trainer"><span>🏀</span></div>
+              <small>SPORTS</small>
+              <h3>Riley</h3>
+              <p>All-sport trainer for form, footwork, awareness, and confidence under pressure.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="challenge-zone" id="challengeZone">
+          <div class="challenge-head">
+            <div><span class="kicker">LEARN · EARN · PLAY</span><h2>Challenge Zone</h2><p>Complete a learning step, collect NextMove Coins, then put your skills into play.</p></div>
+            <div class="coin-balance"><span>◆</span><div><small>YOUR BALANCE</small><b><span id="zoneCoinCount">0</span> coins</b></div></div>
+          </div>
+          <div class="challenge-grid">
+            <article class="challenge-card penalty"><div class="challenge-scene"><span class="goal-net">🥅</span><span class="ball">⚽</span></div><small>20-COIN UNLOCK · MATH</small><h3>Penalty Shootout</h3><p>Unlock permanently, then solve, aim, and beat the goalkeeper whenever you want.</p><button class="dark-btn" id="playPenalty">Need 20 coins</button></article>
+            <article class="challenge-card space"><div class="challenge-scene">🚀</div><small>35-COIN UNLOCK · SCIENCE</small><h3>Space Rescue</h3><p>Answer science questions, protect your fuel, and navigate the crew safely home.</p><button class="dark-btn" id="playSpace">Need 35 coins</button></article>
+            <article class="challenge-card treasure locked"><div class="challenge-scene">🗺️</div><small>COMING NEXT · READING</small><h3>Treasure Trail</h3><p>Read closely, spot clues, and uncover the hidden route.</p></article>
+          </div>
+        </section>
+
+        <section class="how compact">
+          <span class="kicker">HOW IT WORKS</span>
+          <div class="steps">
+            <article><b>01</b><h3>Share the moment</h3><p>Upload homework, gameplay, or a sports clip.</p></article>
+            <article><b>02</b><h3>Add context</h3><p>Tell your coach the subject, game, sport, position, and goal.</p></article>
+            <article><b>03</b><h3>Practice with purpose</h3><p>Get focused observations and one clear next step.</p></article>
+          </div>
+        </section>
+      </section>
+
+      <section class="view" id="coachesView">
+        <div class="section-title"><div><span class="kicker">YOUR COACH SQUAD</span><h2>Choose your coaching style.</h2></div><p>Pick an original NextMove coach for homework, gaming, or sports.</p></div>
+        <div id="coachesMount"></div>
+      </section>
+
+      <section class="view" id="gamesView">
+        <div class="section-title"><div><span class="kicker">LEARN · EARN · PLAY</span><h2>Games & Coins</h2></div><p>Earn coins by completing learning steps, then practice through fun themed challenges.</p></div>
+        <div id="gamesMount"></div>
+      </section>
+
+      <section class="view" id="coachView">
+        <div class="section-title">
+          <div>
+            <span class="kicker">THE COACHING STUDIO</span>
+            <h2 id="coachHeading">Homework Tutor</h2>
+          </div>
+          <p id="coachLead">Choose a coach, add your context, and get focused feedback you can actually use.</p>
+        </div>
+
+        <div class="workspace">
+          <div class="form-panel">
+            <span class="kicker">STEP 01 — SHARE THE MOMENT</span>
+            <h3 id="formTitle"></h3>
+            <p id="formCopy"></p>
+            <label class="dropzone" id="dropzone">
+              <input type="file" id="fileInput">
+              <div id="dropEmpty">
+                <div class="upload">↑</div>
+                <b id="dropTitle"></b>
+                <span>or click to browse</span>
+                <small id="dropHelp"></small>
+              </div>
+              <div class="file-card hidden" id="fileCard">
+                <div class="file-thumb" id="fileThumb">✓</div>
+                <div>
+                  <b id="fileName"></b>
+                  <span id="fileMeta"></span>
+                  <button type="button" id="removeFile">Remove</button>
+                </div>
+              </div>
+            </label>
+            <div class="fields" id="fields"></div>
+            <label class="notes"><span id="notesLabel"></span><textarea id="notes" placeholder="Add anything your coach should know..."></textarea></label>
+            <label class="face-option hidden" id="faceOption"><span><b>Optional face reference</b><small>Jersey number is preferred. This photo is processed only for this report and is not saved.</small></span><input type="file" id="faceInput" accept="image/*"></label>
+            <button class="dark-btn analyze" id="analyzeBtn">Analyze my upload →</button>
+            <p class="form-error" id="formError"></p>
+          </div>
+          <aside class="promise">
+            <span class="kicker">THE NEXTMOVE PROMISE</span>
+            <div class="coach-badge" id="coachBadge"></div>
+            <div class="spark">✦</div>
+            <blockquote id="promiseQuote"></blockquote>
+            <p id="promiseCopy"></p>
+            <ul id="promiseList"></ul>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view report hidden" id="report">
+        <div class="section-title">
+          <div>
+            <span class="kicker">YOUR COACHING REPORT</span>
+            <h2 id="reportTitle"></h2>
+          </div>
+          <button class="outline-btn" id="newSession">New session ↻</button>
+        </div>
+        <div class="report-intro"><span class="coach-avatar logo-mark" aria-hidden="true">↗</span><p id="reportSummary"></p></div>
+        <div class="report-grid" id="reportGrid"></div>
+        <div class="next-focus"><div><small>YOUR NEXT MOVE</small><h3 id="nextFocus"></h3></div></div>
+        <div class="reward-claim hidden" id="rewardClaim"><div><span class="reward-gem">◆</span><div><small>REVIEW COMPLETE</small><h3 id="rewardHeading">NextMove Coins earned</h3><p>Homework earns 5, Sports earns 3, and Gaming earns 1 coin.</p></div></div><button class="dark-btn" id="claimReward" disabled>Coins added!</button></div>
+        <section class="coach-chat" id="coachChat"><div class="chat-head"><div class="chat-coach-avatar" id="chatCoachAvatar">✦</div><div><small>KEEP THE CONVERSATION GOING</small><h3 id="chatTitle">Ask your coach</h3><p>Your coach remembers this report.</p></div><span class="chat-online">● ONLINE</span></div><div class="chat-messages" id="chatMessages" aria-live="polite"></div><form class="chat-form" id="chatForm"><input id="chatInput" maxlength="2000" autocomplete="off" placeholder="Ask a follow-up question…" aria-label="Ask your coach a question"><button class="dark-btn" id="chatSend">Send →</button></form><p class="form-error" id="chatError"></p></section>
+      </section>
+
+      <section class="view" id="reportsView">
+        <div class="section-title">
+          <div>
+            <span class="kicker">SAVED FEEDBACK</span>
+            <h2>Reports</h2>
+          </div>
+          <p>Review previous coaching reports. Original uploads are not retained.</p>
+        </div>
+        <div id="reportsPageList" class="history-list page-list"></div>
+      </section>
+
+      <section class="view" id="accountView">
+        <div class="section-title">
+          <div>
+            <span class="kicker">PROFILE & SAFETY</span>
+            <h2>Account</h2>
+          </div>
+          <p>Sign in, check parent approval status, and manage this local MVP session.</p>
+        </div>
+        <div class="account-grid">
+          <article class="account-card">
+            <h3>Current user</h3>
+            <p id="accountDetails">You are not signed in yet.</p>
+            <div class="account-actions">
+              <button class="dark-btn" id="accountSignup">Create account</button>
+              <button class="outline-btn" id="accountLogin">Log in</button>
+            </div>
+          </article>
+          <article class="account-card">
+            <h3>Parent consent</h3>
+            <p>Learners under 13 need parent approval before uploading homework, clips, or images.</p>
+          </article>
+          <article class="account-card">
+            <h3>Safety rules</h3>
+            <p>Homework coaching gives hints instead of answers. Sports and gaming feedback stays focused on visible performance.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="safety">
+        <div><span class="kicker">PRIVACY & SAFETY</span><h2>Personal footage deserves personal care.</h2></div>
+        <p>Uploads are used to generate one report and are not stored by NextMove. Reports avoid sensitive-trait inferences, and homework coaching guides without giving final answers.</p>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="authDialog"><button class="close" id="closeAuth">×</button><div class="auth-head"><span class="brand-mark logo-mark" aria-hidden="true">↗</span><h2 id="authTitle">Create your account</h2><p id="authCopy">Start building skills that stick.</p></div><form id="authForm"><label class="signup-only">Name<input id="authName" autocomplete="name"></label><label>Email<input type="email" id="authEmail" required autocomplete="email"></label><label>Password<input type="password" id="authPassword" required minlength="8" autocomplete="current-password"></label><label class="signup-only">Date of birth<input type="date" id="authDob"></label><label class="signup-only parent-email hidden">Parent or guardian email<input type="email" id="parentEmail"><small>Required for learners ages 10–12.</small></label><label class="signup-only parent-check hidden"><input type="checkbox" id="isParent"> I am the parent or guardian creating this account.</label><button class="dark-btn" id="authSubmit">Create account</button><p class="form-error" id="authError"></p></form><button class="auth-switch" id="authSwitch">Already have an account? Log in</button></dialog>
+  <dialog id="historyDialog"><button class="close" id="closeHistory">×</button><div class="auth-head"><h2>Coaching history</h2><p>Your saved reports. Original uploads are never retained.</p></div><div id="historyList" class="history-list"></div></dialog>
+  <dialog id="penaltyDialog" class="game-dialog"><button class="close" id="closePenalty">×</button><div class="game-top"><span class="kicker">MATH PENALTY SHOOTOUT</span><div class="mini-score"><b id="shotScore">0</b>/3 goals</div></div><div class="stadium"><div class="crowd">● ● ● ● ● ● ● ● ● ● ● ●</div><div class="goal">🥅</div><div class="keeper" id="keeper">🧤</div><div class="aim-controls hidden" id="aimControls" role="button" tabindex="0" aria-label="Aim and shoot anywhere in the goal"><span>Tap anywhere to shoot</span></div><div class="game-ball" id="gameBall">⚽</div></div><div class="question-box" id="questionBox"><small>QUESTION <span id="questionNumber">1</span> OF 3</small><h2 id="mathQuestion"></h2><form id="answerForm"><input id="mathAnswer" inputmode="numeric" autocomplete="off" placeholder="Your answer" aria-label="Your answer"><button class="dark-btn" id="checkAnswer">Check answer</button></form><p id="gameFeedback"></p></div><div class="game-finish hidden" id="gameFinish"><span>🏆</span><h2>Round complete!</h2><p id="finishCopy"></p><button class="dark-btn" id="playAgain">Play again</button></div></dialog>
+  <dialog id="spaceDialog" class="space-dialog"><button class="close" id="closeSpace">×</button><div class="space-hud"><div><span class="kicker">SPACE RESCUE · SCIENCE MISSION</span><h2>Navigate home</h2></div><div class="fuel">FUEL <b id="spaceFuel">♥ ♥ ♥</b></div></div><div class="space-stage" id="spaceStage"><div class="stars">✦ · ✧ · ✦ · ✧ · ✦ · ✧</div><div class="planet">🌍</div><div class="space-ship" id="spaceShip">🚀</div><div class="asteroid hidden" id="asteroid">☄️</div><div class="space-track"><span id="spaceProgress"></span></div></div><div class="space-question" id="spaceQuestion"><small>MISSION CHECK <span id="spaceNumber">1</span> OF 3</small><h3 id="spacePrompt"></h3><div class="space-options" id="spaceOptions"></div><p id="spaceFeedback"></p></div><div class="space-finish hidden" id="spaceFinish"><span id="spaceFinishIcon">🌍</span><h2 id="spaceFinishTitle">Crew rescued!</h2><p id="spaceFinishCopy"></p><button class="dark-btn" id="spaceAgain">Fly again</button></div></dialog>
+  <script src="app.js"></script>
+</body>
+</html>

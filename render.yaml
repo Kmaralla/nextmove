@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: nextmove
+    runtime: docker
+    healthCheckPath: /api/health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-5.4-mini
+      - key: APP_BASE_URL
+        sync: false
+      - key: NEXTMOVE_DB_FILE
+        value: /var/data/nextmove-db.json
+    disk:
+      name: nextmove-data
+      mountPath: /var/data
+      sizeGB: 1
