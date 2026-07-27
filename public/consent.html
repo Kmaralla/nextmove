@@ -1,1 +1,18 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Parent approval · NextMove</title><link rel="stylesheet" href="styles.css"></head><body class="consent-page"><main><span class="brand-mark">N</span><h1>Parent approval</h1><p id="message">Review the details below, then approve if you are the learner’s parent or guardian.</p><div class="consent-box"><h3>What you are approving</h3><ul><li>The learner may upload homework, gameplay, or sports clips.</li><li>Uploads are processed for one report and not saved by NextMove.</li><li>Coaching reports are saved to the learner’s account.</li></ul></div><button class="dark-btn" id="approve">Approve account</button></main><script>const t=new URLSearchParams(location.search).get('token'),b=document.querySelector('#approve'),m=document.querySelector('#message');if(!t){b.disabled=true;m.textContent='This approval link is invalid.'}b.onclick=async()=>{b.disabled=true;try{const r=await fetch('/api/consent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t})}),d=await r.json();m.textContent=r.ok?`${d.name}'s account is approved. They can now upload files.`:d.error;b.textContent=r.ok?'Approved ✓':'Could not approve'}catch{m.textContent='The approval service could not be reached. Please try again.';b.disabled=false}};</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Age Restricted Â· NextMove</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="consent-page">
+  <main>
+    <span class="brand-mark">â†—</span>
+    <h1>Age-restricted page</h1>
+    <p>NextMove is available only for learners age 13 and older in this public MVP. Under-13 accounts, uploads, and coaching chat are not supported. Learners ages 13 to 17 need parent or guardian permission.</p>
+    <p><a href="/privacy.html">Read the Privacy & COPPA notice</a></p>
+    <a class="dark-btn" href="/">Back to NextMove</a>
+  </main>
+</body>
+</html>
