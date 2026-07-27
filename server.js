@@ -41,7 +41,7 @@ function sessionCookie(sid){return `session=${sid}; HttpOnly; SameSite=Strict; P
 function json(res,status,data){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));}
 function httpError(message,status){return Object.assign(new Error(message),{status});}
 function aiReachError(error){
-  const nested=Array.isArray(error?.cause?.errors)?error.cause.errors.flatMap(e=>[e?.message,e?.code,e?.address].filter(Boolean))[]:[];
+  const nested=Array.isArray(error?.cause?.errors)?error.cause.errors.flatMap(e=>[e?.message,e?.code,e?.address].filter(Boolean)):[];
   const parts=[error?.message,error?.cause?.message,error?.cause?.code,...nested].filter(Boolean);
   const detail=parts.length?` (${parts.join(' · ')})`:'';
   return httpError(`The AI service could not be reached. Please check internet/DNS/firewall/proxy access to api.openai.com and try again.${detail}`,502);
@@ -120,7 +120,7 @@ async function continueCoaching(report, messages, user, coach){
   if(!process.env.OPENAI_API_KEY) throw Object.assign(new Error('AI is not configured. Add OPENAI_API_KEY to the server environment.'),{status:503});
   const mode=report.mode,ageBand=user.age<18?'teen':'adult';
   const integrity=mode==='homework'?'Academic integrity is absolute: never provide the final answer, complete the assignment, or solve graded work. If the learner asks for the answer, refuse briefly and give a hint, guiding question, or concept explanation instead.':'Only discuss coaching supported by the saved report. Be honest when the report does not contain enough evidence.';
-  const sportsSafety=mode==='sports'?'Sports safety: do not diagnose injuries, provide medical advice, recommend playing through pain, or replace a coach/clinician. If pain or injury is mentioned, tell the learner to stop and ask a qualified adult, coach, clinician, or professional.':'';
+  const sportsSafety=mode==='sports'?'Sports safety: do not diagnose injuries, provide medical advice, recommend playing through pain, or replace a coach/clinician. If pain or injury is mentioned, tell the learner to stop and ask a qualified adult, coach, clinician, or professional.':'':
   const nowText=new Intl.DateTimeFormat('en-US',{dateStyle:'long',timeZone:'America/New_York'}).format(new Date());
   const instructions=`Current date: ${nowText}. Treat events before this date as already happened. If asked about recent sports, games, releases, teams, tournaments, or public events and you are not certain, say you may be out of date instead of guessing. You are ${coach||'the NextMove coach'}, continuing a ${mode} coaching conversation with ${user.name}, a learner in the ${ageBand} age band. Be warm, concise, specific, and conversational. ${integrity} ${sportsSafety} Do not infer sensitive traits or identify real-world people. The saved coaching report is your source of context.`;
   const recent=(Array.isArray(messages)?messages:[]).slice(-10).filter(m=>['user','assistant'].includes(m.role)&&typeof m.content==='string');
@@ -144,7 +144,7 @@ async function api(req,res,url){
       if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(b.email))) return json(res,400,{error:'Enter a valid email address.'});
       if(b.password.length<8) return json(res,400,{error:'Password must be at least 8 characters.'});
       if(age<MINIMUM_AGE) return json(res,403,{error:'NextMove is available only for learners age 13 and older in this public MVP.'});
-      if(age<18&&b.guardianPermission!==true) return json(res,400,{error:'Learners ages 13â€“17 must confirm they have parent or guardian permission.'});
+      if(age<18&&b.guardianPermission!==true) return json(res,400,{error:'Learners ages 13–17 must confirm they have parent or guardian permission.'});
       if(b.acceptTerms!==true) return json(res,400,{error:'You must confirm you are 13+ and agree to the Terms and Privacy Notice.'});
       const db=readDb(); if(db.users.some(u=>u.email.toLowerCase()===b.email.toLowerCase())) return json(res,409,{error:'An account with that email already exists.'});
       const now=new Date().toISOString();
