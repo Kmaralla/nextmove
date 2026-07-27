@@ -28,6 +28,8 @@
       <div class="sidebar-card">
         <small>Privacy promise</small>
         <p>Uploads are processed for one report and not stored by NextMove.</p>
+        <p><a href="/privacy.html">Privacy & COPPA notice</a></p>
+        <p><a href="/terms.html">Terms</a></p>
       </div>
     </aside>
 
@@ -64,7 +66,7 @@
             <h2>Find your <em>next move.</em></h2>
             <p>Choose a tutor, upload the moment, and get specific coaching that helps you understand what to improve next.</p>
             <button class="dark-btn hero-btn" id="heroStart">Start coaching <b>↗</b></button>
-            <small>Private by design · Parent consent for learners under 13</small>
+            <small>Private by design · Public MVP for ages 13+</small>
           </div>
           <div class="hero-art" aria-hidden="true">
             <div class="ring r1"></div>
@@ -74,6 +76,18 @@
             <div class="tile t3">◉<small>TRAIN</small></div>
           </div>
         </div>
+
+        <section class="daily-goal" id="dailyGoal">
+          <div class="daily-goal-head">
+            <div>
+              <span class="kicker">THIS WEEK'S NEXT MOVES</span>
+              <h3>5 weekly goals</h3>
+              <p>Randomized each week. Push your learning, earn coins, then spend them with purpose.</p>
+            </div>
+            <div class="daily-score" id="dailyGoalScoreShell"><small>Weekly accuracy</small><span id="dailyGoalScore">0%</span></div>
+          </div>
+          <div class="daily-goal-list" id="dailyGoalList"></div>
+        </section>
 
         <div class="quick-grid">
           <article class="quick-card" data-view="homework">
@@ -101,7 +115,22 @@
             </div>
             <p>Original cartoon-style coaches with relatable themes — no celebrity, school, club, or anime lookalikes.</p>
           </div>
-          <div class="coach-grid">
+          <section class="coach-quiz">
+            <div>
+              <span class="kicker">COACH MATCH QUIZ</span>
+              <h3>Not sure who to pick?</h3>
+              <p>Answer three quick questions and NextMove will recommend one coach for each category.</p>
+            </div>
+            <div class="quiz-grid">
+              <label>Homework style<select id="quizHomework"><option value="Maya">Step-by-step and calm</option><option value="Orion">Math/science problem solving</option><option value="Sol">Writing, reading, essays</option><option value="Quinn">Planning and study habits</option></select></label>
+              <label>Gaming focus<select id="quizGaming"><option value="Byte">Tactics and decisions</option><option value="Drift">Mechanics and reactions</option><option value="Nova">Strategy and rotations</option><option value="Echo">Comms and teamwork</option></select></label>
+              <label>Sports focus<select id="quizSports"><option value="Kai">Soccer-style spacing</option><option value="Riley">All-around technique</option><option value="Ace">Speed and agility</option><option value="Scout">Field IQ and awareness</option></select></label>
+            </div>
+            <div class="quiz-actions"><button class="dark-btn" id="applyCoachQuiz">Use these coaches</button><p id="coachQuizResult"></p></div>
+          </section>
+          <div class="coach-section homework-section">
+            <div class="coach-section-head"><span>📚</span><div><small>HOMEWORK</small><h3>Homework coaches</h3><p>Pick the guide who matches how you like to learn.</p></div></div>
+            <div class="coach-grid">
             <article class="coach-card homework" data-view="homework" data-coach="Maya">
               <div class="coach-art campus"><span>📚</span></div>
               <small>HOMEWORK</small>
@@ -114,6 +143,23 @@
               <h3>Orion</h3>
               <p>Lab-coat problem solver for math, science, and “wait, why does this work?” moments.</p>
             </article>
+            <article class="coach-card homework" data-view="homework" data-coach="Sol">
+              <div class="coach-art writing"><span>✍</span></div>
+              <small>WRITING</small>
+              <h3>Sol</h3>
+              <p>Essay and reading coach who helps turn rough thoughts into clear, confident steps.</p>
+            </article>
+            <article class="coach-card homework" data-view="homework" data-coach="Quinn">
+              <div class="coach-art planner"><span>🧭</span></div>
+              <small>STUDY PLAN</small>
+              <h3>Quinn</h3>
+              <p>Organized study strategist for planning assignments, habits, and what to do next.</p>
+            </article>
+            </div>
+          </div>
+          <div class="coach-section gaming-section">
+            <div class="coach-section-head"><span>🎮</span><div><small>GAMING</small><h3>Gaming coaches</h3><p>Choose a coach for decisions, mechanics, strategy, or teamwork.</p></div></div>
+            <div class="coach-grid">
             <article class="coach-card gaming" data-view="gaming" data-coach="Byte">
               <div class="coach-art tactics"><span>🎧</span></div>
               <small>GAMING</small>
@@ -126,6 +172,23 @@
               <h3>Drift</h3>
               <p>Fast, focused, and built for movement, aim, reactions, and repeatable practice.</p>
             </article>
+            <article class="coach-card gaming" data-view="gaming" data-coach="Nova">
+              <div class="coach-art strategy"><span>🛰</span></div>
+              <small>STRATEGY</small>
+              <h3>Nova</h3>
+              <p>Big-picture gaming coach for rotations, map control, team timing, and smarter plans.</p>
+            </article>
+            <article class="coach-card gaming" data-view="gaming" data-coach="Echo">
+              <div class="coach-art comms"><span>💬</span></div>
+              <small>COMMS</small>
+              <h3>Echo</h3>
+              <p>Teamwork coach for callouts, staying calm, and making better choices under pressure.</p>
+            </article>
+            </div>
+          </div>
+          <div class="coach-section sports-section">
+            <div class="coach-section-head"><span>⚽</span><div><small>SPORTS</small><h3>Sports coaches</h3><p>Select the coach for technique, movement, field IQ, or game awareness.</p></div></div>
+            <div class="coach-grid">
             <article class="coach-card sports" data-view="sports" data-coach="Kai">
               <div class="coach-art soccer"><span>⚽</span></div>
               <small>SOCCER</small>
@@ -138,6 +201,19 @@
               <h3>Riley</h3>
               <p>All-sport trainer for form, footwork, awareness, and confidence under pressure.</p>
             </article>
+            <article class="coach-card sports" data-view="sports" data-coach="Ace">
+              <div class="coach-art speed"><span>🏃</span></div>
+              <small>SPEED</small>
+              <h3>Ace</h3>
+              <p>Movement coach for quickness, balance, first-step speed, and sharper agility.</p>
+            </article>
+            <article class="coach-card sports" data-view="sports" data-coach="Scout">
+              <div class="coach-art fieldiq"><span>👁</span></div>
+              <small>FIELD IQ</small>
+              <h3>Scout</h3>
+              <p>Awareness coach for spacing, positioning, reading the play, and smarter decisions.</p>
+            </article>
+            </div>
           </div>
         </section>
 
@@ -147,10 +223,18 @@
             <div class="coin-balance"><span>◆</span><div><small>YOUR BALANCE</small><b><span id="zoneCoinCount">0</span> coins</b></div></div>
           </div>
           <div class="challenge-grid">
-            <article class="challenge-card penalty"><div class="challenge-scene"><span class="goal-net">🥅</span><span class="ball">⚽</span></div><small>20-COIN UNLOCK · MATH</small><h3>Penalty Shootout</h3><p>Unlock permanently, then solve, aim, and beat the goalkeeper whenever you want.</p><button class="dark-btn" id="playPenalty">Need 20 coins</button></article>
-            <article class="challenge-card space"><div class="challenge-scene">🚀</div><small>35-COIN UNLOCK · SCIENCE</small><h3>Space Rescue</h3><p>Answer science questions, protect your fuel, and navigate the crew safely home.</p><button class="dark-btn" id="playSpace">Need 35 coins</button></article>
-            <article class="challenge-card treasure locked"><div class="challenge-scene">🗺️</div><small>COMING NEXT · READING</small><h3>Treasure Trail</h3><p>Read closely, spot clues, and uncover the hidden route.</p></article>
+            <article class="challenge-card penalty"><div class="challenge-scene"><span class="goal-net">🥅</span><span class="ball">⚽</span></div><small>20 COINS PER PLAY · MATH</small><h3>Penalty Shootout</h3><p>Spend coins, then solve, aim, curve, and beat the goalkeeper for one round.</p><button class="dark-btn" id="playPenalty">Need 20 coins</button></article>
+            <article class="challenge-card space basketball"><div class="challenge-scene"><span class="court-hoop">🏀</span></div><small>30 COINS PER PLAY · CLUTCH QUIZ</small><h3>Basketball Clutch Shot</h3><p>Spend coins, answer quick questions, build your shot meter, and sink the buzzer-beater.</p><button class="dark-btn" id="playSpace">Need 30 coins</button></article>
+            <article class="challenge-card cricket"><div class="challenge-scene"><span class="cricket-bat">🏏</span><span class="cricket-ball">🔴</span></div><small>35 COINS PER PLAY · READING</small><h3>Cricket Chase</h3><p>Spend coins, read the delivery, choose the right shot, and chase the target before the final over.</p><button class="dark-btn" id="playCricket">Need 35 coins</button></article>
           </div>
+          <section class="coin-wallet">
+            <div>
+              <span class="kicker">COIN WALLET</span>
+              <h3>Where your coins went</h3>
+              <p>Earn from reviews, spend on games. This keeps the economy easy to understand.</p>
+            </div>
+            <div class="coin-history" id="coinHistoryList"></div>
+          </section>
         </section>
 
         <section class="how compact">
@@ -206,7 +290,8 @@
             </label>
             <div class="fields" id="fields"></div>
             <label class="notes"><span id="notesLabel"></span><textarea id="notes" placeholder="Add anything your coach should know..."></textarea></label>
-            <label class="face-option hidden" id="faceOption" aria-hidden="true"></span>
+            <p class="upload-disclosure" id="uploadDisclosure">Uploads are sent to an AI provider to create coaching feedback. Do not upload private, sensitive, or unnecessary personal information.</p>
+            <span class="hidden" id="faceOption" aria-hidden="true"></span>
             <button class="dark-btn analyze" id="analyzeBtn">Analyze my upload →</button>
             <p class="form-error" id="formError"></p>
           </div>
@@ -227,9 +312,14 @@
             <span class="kicker">YOUR COACHING REPORT</span>
             <h2 id="reportTitle"></h2>
           </div>
-          <button class="outline-btn" id="newSession">New session ↻</button>
+          <div class="account-actions"><button class="outline-btn" id="deleteReport">Delete report</button><button class="outline-btn" id="newSession">New session ↻</button></div>
         </div>
         <div class="report-intro"><span class="coach-avatar logo-mark" aria-hidden="true">↗</span><p id="reportSummary"></p></div>
+        <div class="voice-controls report-voice" id="reportVoicePanel">
+          <button class="outline-btn" id="voiceToggle">🔊 Read aloud</button>
+          <button class="text-btn hidden" id="voiceStop">Stop voice</button>
+          <small id="voiceStatus">Coach voice off</small>
+        </div>
         <div class="report-grid" id="reportGrid"></div>
         <div class="next-focus"><div><small>YOUR NEXT MOVE</small><h3 id="nextFocus"></h3></div></div>
         <div class="reward-claim hidden" id="rewardClaim"><div><span class="reward-gem">◆</span><div><small>REVIEW COMPLETE</small><h3 id="rewardHeading">NextMove Coins earned</h3><p>Homework earns 5, Sports earns 3, and Gaming earns 1 coin.</p></div></div><button class="dark-btn" id="claimReward" disabled>Coins added!</button></div>
@@ -253,7 +343,7 @@
             <span class="kicker">PROFILE & SAFETY</span>
             <h2>Account</h2>
           </div>
-          <p>Sign in, check parent approval status, and manage this local MVP session.</p>
+          <p>Sign in, review account details, and manage this local MVP session.</p>
         </div>
         <div class="account-grid">
           <article class="account-card">
@@ -266,24 +356,24 @@
             </div>
           </article>
           <article class="account-card">
-            <h3>Parent consent</h3>
-            <p>Learners under 13 need parent approval before uploading homework, clips, or images.</p>
+            <h3>Age safety</h3>
+            <p>NextMove is available only for learners age 13 and older in this public MVP.</p>
           </article>
           <article class="account-card">
             <h3>Safety rules</h3>
-            <p>Homework coaching gives hints instead of answers. Sports and gaming feedback stays focused on visible performance.</p>
+            <p>Homework coaching gives hints instead of answers. Sports and gaming feedback stays focused on visible performance. Sports coaching is not medical advice.</p>
           </article>
         </div>
       </section>
 
       <section class="safety">
         <div><span class="kicker">PRIVACY & SAFETY</span><h2>Personal footage deserves personal care.</h2></div>
-        <p>Uploads are used to generate one report and are not stored by NextMove. Reports avoid sensitive-trait inferences, and homework coaching guides without giving final answers.</p>
+        <p>Uploads are used to generate one report and are not stored by NextMove. Reports avoid sensitive-trait inferences, and homework coaching guides without giving final answers. Read the <a href="/privacy.html">Privacy & COPPA notice</a>.</p>
       </section>
     </main>
   </div>
 
-  <dialog id="authDialog"><button class="close" id="closeAuth">×</button><div class="auth-head"><span class="brand-mark logo-mark" aria-hidden="true">↗</span><h2 id="authTitle">Create your account</h2><p id="authCopy">Start building skills that stick.</p></div><form id="authForm"><label class="signup-only">Name<input id="authName" autocomplete="name"></label><label>Email<input type="email" id="authEmail" required autocomplete="email"></label><label>Password<input type="password" id="authPassword" required minlength="8" autocomplete="current-password"></label><label class="signup-only">Date of birth<input type="date" id="authDob"><small>NextMove public MVP is for students age 13+.</small></label><label class="signup-only parent-email hidden">Parent or guardian email<input type="email" id="parentEmail"><small>Required for learners ages 10–12.</small></label><label class="signup-only parent-check hidden"><input type="checkbox" id="isParent"> I am the parent or guardian creating this account.</label><button class="dark-btn" id="authSubmit">Create account</button><p class="form-error" id="authError"></p></form><button class="auth-switch" id="authSwitch">Already have an account? Log in</button></dialog>
+  <dialog id="authDialog"><button class="close" id="closeAuth">×</button><div class="auth-head"><span class="brand-mark logo-mark" aria-hidden="true">↗</span><h2 id="authTitle">Create your account</h2><p id="authCopy">Start building skills that stick.</p></div><form id="authForm"><label class="signup-only">Name<input id="authName" autocomplete="name"></label><label>Email<input type="email" id="authEmail" required autocomplete="email"></label><label>Password<input type="password" id="authPassword" required minlength="8" autocomplete="current-password"></label><label class="signup-only">Date of birth<input type="date" id="authDob"><small>NextMove public MVP is for students age 13+.</small></label><label class="signup-only terms-check"><input type="checkbox" id="guardianConsent"> If I am under 18, I confirm I have permission from my parent or guardian to use NextMove.</label><label class="signup-only terms-check"><input type="checkbox" id="termsConsent"> I confirm I am 13 or older, agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms</a>, and understand uploads may be processed by AI as described in the <a href="/privacy.html" target="_blank" rel="noopener">Privacy Notice</a>.</label><button class="dark-btn" id="authSubmit">Create account</button><p class="form-error" id="authError"></p></form><button class="auth-switch" id="authSwitch">Already have an account? Log in</button></dialog>
   <dialog id="historyDialog"><button class="close" id="closeHistory">×</button><div class="auth-head"><h2>Coaching history</h2><p>Your saved reports. Original uploads are never retained.</p></div><div id="historyList" class="history-list"></div></dialog>
   <dialog id="penaltyDialog" class="game-dialog"><button class="close" id="closePenalty">×</button><div class="game-top"><span class="kicker">MATH PENALTY SHOOTOUT</span><div class="mini-score"><b id="shotScore">0</b>/3 goals</div></div><div class="stadium"><div class="crowd">● ● ● ● ● ● ● ● ● ● ● ●</div><div class="goal">🥅</div><div class="keeper" id="keeper">🧤</div><div class="aim-controls hidden" id="aimControls" role="button" tabindex="0" aria-label="Aim and shoot anywhere in the goal"><span>Tap anywhere to shoot</span></div><div class="penalty-player" id="penaltyPlayer" aria-hidden="true"><span class="player-head"></span><span class="player-body"></span><span class="player-arm"></span><span class="player-leg plant"></span><span class="player-leg kick"></span></div><div class="game-ball" id="gameBall">⚽</div></div><div class="question-box" id="questionBox"><small>QUESTION <span id="questionNumber">1</span> OF 3</small><h2 id="mathQuestion"></h2><form id="answerForm"><input id="mathAnswer" inputmode="numeric" autocomplete="off" placeholder="Your answer" aria-label="Your answer"><button class="dark-btn" id="checkAnswer">Check answer</button></form><div class="curve-panel hidden" id="curvePanel"><small>CHOOSE CURVE</small><div class="curve-buttons" role="group" aria-label="Choose shot curve"><button type="button" data-curve="left">↶ Left bend</button><button type="button" data-curve="straight" class="active">↑ Straight</button><button type="button" data-curve="right">↷ Right bend</button><button type="button" data-curve="top">⌁ Dip</button></div></div><p id="gameFeedback"></p></div><div class="game-finish hidden" id="gameFinish"><span>🏆</span><h2>Round complete!</h2><p id="finishCopy"></p><button class="dark-btn" id="playAgain">Play again</button></div></dialog>
   <dialog id="spaceDialog" class="space-dialog basketball-dialog"><button class="close" id="closeSpace">×</button><div class="space-hud"><div><span class="kicker">BASKETBALL CLUTCH SHOT · QUICK QUIZ</span><h2>Beat the buzzer</h2></div><div class="fuel">TIME <b id="spaceFuel">♥ ♥ ♥</b></div></div><div class="space-stage court-stage" id="spaceStage"><div class="stars court-lines">━━━━━━━━</div><div class="planet hoop">🏀</div><div class="space-ship" id="spaceShip">🏀</div><div class="asteroid hidden" id="asteroid">🧱</div><div class="space-track"><span id="spaceProgress"></span></div></div><div class="space-question" id="spaceQuestion"><small>CLUTCH CHECK <span id="spaceNumber">1</span> OF 3</small><h3 id="spacePrompt"></h3><div class="space-options" id="spaceOptions"></div><p id="spaceFeedback"></p></div><div class="space-finish hidden" id="spaceFinish"><span id="spaceFinishIcon">🏀</span><h2 id="spaceFinishTitle">Buzzer beater!</h2><p id="spaceFinishCopy"></p><button class="dark-btn" id="spaceAgain">Shoot again</button></div></dialog>
