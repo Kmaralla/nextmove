@@ -69,7 +69,7 @@ test('adult account can analyze homework, gaming, and sports safely',async()=>{
   const deletedReport=await call(`/api/reports/${home.data.report.id}`,{method:'DELETE',cookie});assert.equal(deletedReport.status,200);
   const afterDelete=await call('/api/reports',{cookie});assert.equal(afterDelete.data.reports.length,2);
   const deletedAccount=await call('/api/account',{method:'DELETE',cookie});assert.equal(deletedAccount.status,200);
-  const afterAccountDelete=await call('/api/me',{cookie});assert.equal(afterAccountDelete.status,401);
+  const afterAccountDelete=await call('/api/me',{cookie});assert.equal(afterAccountDelete.status,200);assert.equal(afterAccountDelete.data.user,null);
 });
 
 test('under-13 accounts are blocked in the public MVP',async()=>{

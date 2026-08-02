@@ -6,7 +6,8 @@ const crypto = require('crypto');
 // Load local secrets without requiring a dependency. Values already supplied
 // by the operating system take precedence over the .env file.
 const envFile = path.join(__dirname, '.env');
-if (fs.existsSync(envFile)) {
+function loadEnvFile({ override=false }={}) {
+  if (!fs.existsSync(envFile)) return;
   for (const rawLine of fs.readFileSync(envFile, 'utf8').split(/\r?\n/)) {
     const line = rawLine.trim();
     if (!line || line.startsWith('#') || !line.includes('=')) continue;
@@ -14,9 +15,10 @@ if (fs.existsSync(envFile)) {
     const key = line.slice(0, split).trim();
     let value = line.slice(split + 1).trim();
     if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) value = value.slice(1, -1);
-    if (!process.env[key]) process.env[key] = value;
+    if (override || !process.env[key]) process.env[key] = value;
   }
 }
+loadEnvFile();
 
 const PORT = process.env.PORT || 4318;
 const ROOT = path.join(__dirname, 'public');
@@ -40,11 +42,77 @@ function userFor(req){ const uid=sessions.get(cookies(req).session); return uid 
 function sessionCookie(sid){return `session=${sid}; HttpOnly; SameSite=Strict; Path=/${process.env.NODE_ENV==='production'?'; Secure':''}`;}
 function json(res,status,data){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));}
 function httpError(message,status){return Object.assign(new Error(message),{status});}
+const eventClients = new Map();
+function liveEvent(res,type,payload={}){
+  res.write(`event: ${type}\n`);
+  res.write(`data: ${JSON.stringify({type,at:new Date().toISOString(),...payload})}\n\n`);
+}
+function notifyUsers(userIds,type,payload={}){
+  [...new Set(userIds.filter(Boolean))].forEach(userId=>{
+    for(const res of eventClients.get(userId)||[]){
+      try{liveEvent(res,type,payload)}catch{}
+    }
+  });
+}
 function aiReachError(error){
   const nested=Array.isArray(error?.cause?.errors)?error.cause.errors.flatMap(e=>[e?.message,e?.code,e?.address].filter(Boolean)):[];
   const parts=[error?.message,error?.cause?.message,error?.cause?.code,...nested].filter(Boolean);
   const detail=parts.length?` (${parts.join(' · ')})`:'';
-  return httpError(`The AI service could not be reached. Please check internet/DNS/firewall/proxy access to api.openai.com and try again.${detail}`,502);
+  const err=httpError(`The AI service could not be reached. Please check internet/DNS/firewall/proxy access to api.openai.com and try again.${detail}`,502);
+  err.code='AI_REACHABILITY';
+  return err;
+}
+function isAiReachabilityError(error){return error?.code==='AI_REACHABILITY'||String(error?.message||'').startsWith('The AI service could not be reached.');}
+function offlineAnalyzeReport(payload){
+  const coach=payload.meta?.coach||'NextMove Coach';
+  const note='Offline coach preview: OpenAI could not be reached from this local server, so this report is based only on the form details and upload type. Deploy or run with network access for full AI vision feedback.';
+  if(payload.mode==='homework'){
+    const subject=payload.meta.subject||'your subject';
+    const level=payload.meta.level||'your level';
+    return {
+      title:`${coach}'s homework game plan`,
+      summary:`${note} I can still help you start safely: focus on understanding the problem, not jumping to the final answer.`,
+      observations:[
+        {label:'Read the prompt like a checklist',detail:`For ${subject} at ${level}, underline what the question gives you, circle what it asks for, and write one sentence explaining the goal in your own words.`},
+        {label:'Find the first move only',detail:'Choose the rule, formula, paragraph evidence, or concept that seems connected. Do not solve the whole assignment yet.'},
+        {label:'Check your stuck point',detail:payload.meta.notes?`You said: "${payload.meta.notes}". Turn that into one smaller question your coach can answer next.`:'Write exactly where you get confused: vocabulary, setup, formula choice, evidence, or organization.'}
+      ],
+      nextStep:'Before asking for more help, write the first setup step and explain why it fits the problem.',
+      question:'What information did the assignment give you, and what is it asking you to find or explain?',
+      drill:'Two-minute reset: restate the task, list known information, then choose one possible first step without finishing the answer.'
+    };
+  }
+  if(payload.mode==='gaming'){
+    const game=payload.meta.game||'your game';
+    return {
+      title:`${coach}'s ${game} review preview`,
+      summary:note,
+      observations:[
+        {timestamp:'00:00',label:'Clip received',detail:`I received sampled frames for ${game}, but local network access blocked the full AI frame review.`},
+        {timestamp:'00:10',label:'Focus your review',detail:'When you re-run with AI access, look for one decision before the mistake: positioning, timing, aim setup, cooldown use, or communication.'}
+      ],
+      strengths:['You are reviewing your own gameplay, which is already a strong improvement habit.'],
+      improvements:['Pick one repeat mistake and track it for the next three rounds.','Pause before each fight or play and ask: do I have cover, timing, and a clear escape?'],
+      drill:'Play three short rounds focusing on one habit only: better positioning before mechanics.',
+      nextFocus:'Re-run this upload once the server has OpenAI network access for frame-specific coaching.'
+    };
+  }
+  const sport=payload.meta.sport||'your sport';
+  const position=payload.meta.position||'your position';
+  const jersey=payload.meta.jersey?` Jersey #${payload.meta.jersey}.`:'';
+  const jerseyName=payload.meta.jerseyName?` Jersey name/text: ${payload.meta.jerseyName}.`:'';
+  return {
+    title:`${coach}'s ${sport} review preview`,
+    summary:note,
+    observations:[
+      {timestamp:'00:00',label:'Clip received',detail:`I received sampled frames for ${sport}, position ${position}.${jersey}${jerseyName} Local network access blocked the full AI frame review.`},
+      {timestamp:'00:10',label:'Review lens',detail:'For the real AI review, use jersey details to track the player only; NextMove should not identify anyone by face or real-world identity.'}
+    ],
+    strengths:['You are using video review, which is one of the fastest ways to improve awareness and decision-making.'],
+    improvements:['Scan earlier before receiving or attacking the play.','Choose one position-specific habit to practice: spacing, first touch/control, footwork, shot setup, or defensive angle.'],
+    drill:`Run a 10-minute ${position} drill: scan, move into space, receive or control, then make one quick decision.`,
+    nextFocus:'Re-run this upload once the server has OpenAI network access for frame-specific sports coaching.'
+  };
 }
 function body(req, limit=55*1024*1024){return new Promise((resolve,reject)=>{let size=0,parts=[],done=false;req.on('data',c=>{if(done)return;size+=c.length;if(size>limit){done=true;reject(httpError('Upload is too large. Choose a smaller file or shorter clip.',413));req.destroy();}else parts.push(c)});req.on('end',()=>{if(done)return;try{resolve(JSON.parse(Buffer.concat(parts).toString()||'{}'))}catch{reject(httpError('The request could not be read. Please try again.',400))}});req.on('error',e=>{if(!done)reject(e)})});}
 function publicUser(u){return {id:u.id,name:u.name,email:u.email,age:u.age,role:u.role};}
@@ -90,6 +158,7 @@ function validateAnalyzePayload(payload){
   return payload;
 }
 async function analyzeWithAI(payload, user){
+  loadEnvFile();
   if(!process.env.OPENAI_API_KEY) throw Object.assign(new Error('AI is not configured. Add OPENAI_API_KEY to the server environment.'),{status:503});
   const ageBand=user.age<18?'teen':'adult';
   const nowText=new Intl.DateTimeFormat('en-US',{dateStyle:'long',timeZone:'America/New_York'}).format(new Date());
@@ -117,6 +186,7 @@ async function analyzeWithAI(payload, user){
 }
 
 async function continueCoaching(report, messages, user, coach){
+  loadEnvFile();
   if(!process.env.OPENAI_API_KEY) throw Object.assign(new Error('AI is not configured. Add OPENAI_API_KEY to the server environment.'),{status:503});
   const mode=report.mode,ageBand=user.age<18?'teen':'adult';
   const integrity=mode==='homework'?'Academic integrity is absolute: never provide the final answer, complete the assignment, or solve graded work. If the learner asks for the answer, refuse briefly and give a hint, guiding question, or concept explanation instead.':'Only discuss coaching supported by the saved report. Be honest when the report does not contain enough evidence.';
@@ -137,7 +207,7 @@ async function continueCoaching(report, messages, user, coach){
 
 async function api(req,res,url){
   try{
-    if(req.method==='GET'&&url.pathname==='/api/health') return json(res,200,{ok:true,aiConfigured:!!process.env.OPENAI_API_KEY});
+    if(req.method==='GET'&&url.pathname==='/api/health'){loadEnvFile();return json(res,200,{ok:true,aiConfigured:!!process.env.OPENAI_API_KEY});}
     if(req.method==='POST'&&url.pathname==='/api/signup'){
       const b=await body(req); const age=ageFrom(b.dob);
       if(!b.name||!b.email||!b.password||!b.dob||!Number.isFinite(age)||age<5) return json(res,400,{error:'Please enter a valid date of birth that is not in the future.'});
@@ -158,8 +228,22 @@ async function api(req,res,url){
       const sid=token();sessions.set(sid,u.id);res.setHeader('Set-Cookie',sessionCookie(sid));return json(res,200,{user:publicUser(u)});
     }
     if(req.method==='POST'&&url.pathname==='/api/logout'){const sid=cookies(req).session;sessions.delete(sid);res.setHeader('Set-Cookie','session=; Max-Age=0; Path=/');return json(res,200,{ok:true});}
-    if(req.method==='GET'&&url.pathname==='/api/me'){const u=userFor(req);return u?json(res,200,{user:publicUser(u)}):json(res,401,{error:'Not signed in'});}
+    if(req.method==='GET'&&url.pathname==='/api/me'){const u=userFor(req);return json(res,200,{user:u?publicUser(u):null});}
     const u=userFor(req); if(!u) return json(res,401,{error:'Please sign in first.'});
+    if(req.method==='GET'&&url.pathname==='/api/events'){
+      res.writeHead(200,{
+        'Content-Type':'text/event-stream; charset=utf-8',
+        'Cache-Control':'no-cache, no-transform',
+        'Connection':'keep-alive',
+        'X-Accel-Buffering':'no'
+      });
+      liveEvent(res,'connected',{userId:u.id});
+      if(!eventClients.has(u.id))eventClients.set(u.id,new Set());
+      eventClients.get(u.id).add(res);
+      const heartbeat=setInterval(()=>{try{res.write(': keepalive\n\n')}catch{}},25000);
+      req.on('close',()=>{clearInterval(heartbeat);const set=eventClients.get(u.id);if(set){set.delete(res);if(!set.size)eventClients.delete(u.id)}});
+      return;
+    }
     if(req.method==='GET'&&url.pathname==='/api/reports'){const reports=readAppDb().reports.filter(r=>r.userId===u.id).map(({userId,...r})=>r);return json(res,200,{reports});}
     if(req.method==='DELETE'&&url.pathname.startsWith('/api/reports/')){
       const reportId=decodeURIComponent(url.pathname.slice('/api/reports/'.length));
@@ -184,14 +268,14 @@ async function api(req,res,url){
       if(areFriends(db,u.id,target.id)) return json(res,409,{error:'You are already friends.'});
       const existing=db.friendRequests.find(r=>r.status==='pending'&&((r.from===u.id&&r.to===target.id)||(r.from===target.id&&r.to===u.id)));
       if(existing) return json(res,200,{request:existing});
-      const request={id:id(),from:u.id,to:target.id,status:'pending',createdAt:new Date().toISOString()};db.friendRequests.push(request);writeDb(db);return json(res,201,{request});
+      const request={id:id(),from:u.id,to:target.id,status:'pending',createdAt:new Date().toISOString()};db.friendRequests.push(request);writeDb(db);notifyUsers([target.id,u.id],'friends-updated',{reason:'friend-invite'});return json(res,201,{request});
     }
     if(req.method==='POST'&&url.pathname==='/api/friends/respond'){
       const b=await body(req),db=readAppDb(),request=db.friendRequests.find(r=>r.id===b.requestId&&r.to===u.id&&r.status==='pending');
       if(!request) return json(res,404,{error:'Friend request not found.'});
       request.status=b.accept===true?'accepted':'declined';request.respondedAt=new Date().toISOString();
       if(b.accept===true&&!areFriends(db,request.from,request.to))db.friendships.push({id:id(),users:[request.from,request.to],createdAt:new Date().toISOString()});
-      writeDb(db);return json(res,200,{ok:true});
+      writeDb(db);notifyUsers([request.from,request.to],'friends-updated',{reason:'friend-response'});return json(res,200,{ok:true});
     }
     if(req.method==='POST'&&url.pathname==='/api/friends/remove'){
       const b=await body(req),db=readAppDb(),friendId=String(b.friendId||'');
@@ -200,7 +284,7 @@ async function api(req,res,url){
       db.friendRequests=db.friendRequests.filter(r=>!((r.from===u.id&&r.to===friendId)||(r.from===friendId&&r.to===u.id)));
       db.friendMessages=db.friendMessages.filter(m=>m.chatId!==friendChatId(u.id,friendId));
       db.parties.forEach(p=>{p.memberIds=(p.memberIds||[]).filter(id=>id!==friendId||p.ownerId===friendId);p.invitedIds=(p.invitedIds||[]).filter(id=>id!==friendId)});
-      writeDb(db);return json(res,200,{ok:true});
+      writeDb(db);notifyUsers([u.id,friendId],'friends-updated',{reason:'friend-remove'});return json(res,200,{ok:true});
     }
     if(req.method==='POST'&&url.pathname==='/api/friends/block'){
       const b=await body(req),db=readAppDb(),blockedId=String(b.friendId||b.userId||'');
@@ -209,7 +293,7 @@ async function api(req,res,url){
       db.friendships=db.friendships.filter(f=>!(f.users.includes(u.id)&&f.users.includes(blockedId)));
       db.friendMessages=db.friendMessages.filter(m=>m.chatId!==friendChatId(u.id,blockedId));
       db.parties.forEach(p=>{p.memberIds=(p.memberIds||[]).filter(id=>id!==blockedId||p.ownerId===blockedId);p.invitedIds=(p.invitedIds||[]).filter(id=>id!==blockedId)});
-      writeDb(db);return json(res,200,{ok:true});
+      writeDb(db);notifyUsers([u.id,blockedId],'friends-updated',{reason:'friend-block'});return json(res,200,{ok:true});
     }
     if(req.method==='GET'&&url.pathname==='/api/friends/chat'){
       const friendId=url.searchParams.get('friendId'),db=readAppDb();
@@ -221,7 +305,7 @@ async function api(req,res,url){
       const b=await body(req),db=readAppDb(),friendId=String(b.friendId||''),text=short(b.text,1000);
       if(!text) return json(res,400,{error:'Type a message first.'});
       if(!areFriends(db,u.id,friendId)) return json(res,403,{error:'You can only chat with accepted friends.'});
-      const message={id:id(),chatId:friendChatId(u.id,friendId),from:u.id,to:friendId,text,createdAt:new Date().toISOString()};db.friendMessages.push(message);writeDb(db);return json(res,201,{message});
+      const message={id:id(),chatId:friendChatId(u.id,friendId),from:u.id,to:friendId,text,createdAt:new Date().toISOString()};db.friendMessages.push(message);writeDb(db);notifyUsers([u.id,friendId],'friends-updated',{reason:'friend-message'});return json(res,201,{message});
     }
     if(req.method==='GET'&&url.pathname==='/api/party'){
       const db=readAppDb(),users=Object.fromEntries(db.users.map(user=>[user.id,user])),party=partyFor(db,u.id),isMember=party.memberIds.includes(u.id);
@@ -236,14 +320,14 @@ async function api(req,res,url){
       if(party.ownerId!==u.id) return json(res,403,{error:'Only the party owner can invite friends.'});
       if(!areFriends(db,u.id,friendId)) return json(res,403,{error:'Invite accepted friends only.'});
       if(!party.memberIds.includes(friendId)&&!party.invitedIds.includes(friendId))party.invitedIds.push(friendId);
-      writeDb(db);return json(res,200,{ok:true});
+      writeDb(db);notifyUsers([friendId,u.id,...(party.memberIds||[])],'party-updated',{reason:'party-invite'});return json(res,200,{ok:true});
     }
     if(req.method==='POST'&&url.pathname==='/api/party/respond'){
       const b=await body(req),db=readAppDb(),party=db.parties.find(p=>p.id===b.partyId&&p.invitedIds?.includes(u.id));
       if(!party) return json(res,404,{error:'Party invite not found.'});
       party.invitedIds=party.invitedIds.filter(uid=>uid!==u.id);
       if(b.accept===true&&!party.memberIds.includes(u.id))party.memberIds.push(u.id);
-      writeDb(db);return json(res,200,{ok:true});
+      writeDb(db);notifyUsers([party.ownerId,u.id,...(party.memberIds||[])],'party-updated',{reason:'party-response'});return json(res,200,{ok:true});
     }
     if(req.method==='POST'&&url.pathname==='/api/party/leave'){
       const db=readAppDb(),party=db.parties.find(p=>p.memberIds?.includes(u.id)||p.ownerId===u.id);
@@ -251,21 +335,22 @@ async function api(req,res,url){
       party.memberIds=(party.memberIds||[]).filter(id=>id!==u.id);
       party.invitedIds=(party.invitedIds||[]).filter(id=>id!==u.id);
       if(party.ownerId===u.id)party.ownerId=party.memberIds[0]||null;
+      const notifyIds=[u.id,party.ownerId,...(party.memberIds||[])];
       db.parties=db.parties.filter(p=>p.ownerId&&p.memberIds?.length);
-      writeDb(db);return json(res,200,{ok:true});
+      writeDb(db);notifyUsers(notifyIds,'party-updated',{reason:'party-leave'});return json(res,200,{ok:true});
     }
     if(req.method==='POST'&&url.pathname==='/api/party/share'){
       const b=await body(req),db=readAppDb(),party=partyFor(db,u.id),report=db.reports.find(r=>r.id===b.reportId&&r.userId===u.id);
       if(!report) return json(res,404,{error:'Coaching report not found.'});
       if(!party.memberIds.includes(u.id)) return json(res,403,{error:'Join the party before sharing.'});
       if(!party.reportIds.includes(report.id))party.reportIds.unshift(report.id);
-      writeDb(db);return json(res,200,{ok:true});
+      writeDb(db);notifyUsers(party.memberIds||[],'party-updated',{reason:'party-share'});return json(res,200,{ok:true});
     }
     if(req.method==='POST'&&url.pathname==='/api/party/message'){
       const b=await body(req),db=readAppDb(),party=partyFor(db,u.id),text=short(b.text,1000);
       if(!party.memberIds.includes(u.id)) return json(res,403,{error:'Join the party before chatting.'});
       if(!text) return json(res,400,{error:'Type a message first.'});
-      db.partyMessages.push({id:id(),partyId:party.id,from:u.id,text,createdAt:new Date().toISOString()});writeDb(db);return json(res,201,{ok:true});
+      db.partyMessages.push({id:id(),partyId:party.id,from:u.id,text,createdAt:new Date().toISOString()});writeDb(db);notifyUsers(party.memberIds||[],'party-updated',{reason:'party-message'});return json(res,201,{ok:true});
     }
     if(req.method==='POST'&&url.pathname==='/api/safety/report'){
       const b=await body(req),db=readAppDb(),kind=String(b.kind||''),messageId=String(b.messageId||''),reason=short(b.reason||'User reported this content.',500);
@@ -304,13 +389,18 @@ async function api(req,res,url){
       if(!canUseCoaching(u)) return json(res,403,{error:accessBlockMessage(u)});
       const b=await body(req),report=readAppDb().reports.find(r=>r.id===b.reportId&&r.userId===u.id);
       if(!report) return json(res,404,{error:'Coaching report not found.'});
-      const reply=await continueCoaching(report,b.messages,u,String(b.coach||'NextMove Coach').slice(0,40));
+      let reply;
+      try{reply=await continueCoaching(report,b.messages,u,String(b.coach||'NextMove Coach').slice(0,40))}
+      catch(error){if(!isAiReachabilityError(error))throw error;console.warn(error.message);reply='I can’t reach the live AI coach from this local server right now, but you can still use the report above. Pick one observation, try the focused drill, then re-run chat when the server has OpenAI network access.'}
       return json(res,200,{reply});
     }
     if(req.method==='POST'&&url.pathname==='/api/analyze'){
       if(!canUseCoaching(u)) return json(res,403,{error:accessBlockMessage(u)});
       const b=validateAnalyzePayload(await body(req));
-      const report=await analyzeWithAI(b,u); const db=readAppDb(); const coach=String(b.meta?.coach||'NextMove Coach').slice(0,40);report.coach=coach;const saved={id:id(),userId:u.id,mode:b.mode,coach,title:report.title||`${b.mode} coaching report`,createdAt:new Date().toISOString(),report};db.reports.unshift(saved);writeDb(db);return json(res,200,{report:saved});
+      let report;
+      try{report=await analyzeWithAI(b,u)}
+      catch(error){if(!isAiReachabilityError(error))throw error;console.warn(error.message);report=offlineAnalyzeReport(b);report.offlinePreview=true;report.aiError='OpenAI was unreachable from this server process.'}
+      const db=readAppDb(); const coach=String(b.meta?.coach||'NextMove Coach').slice(0,40);report.coach=coach;const saved={id:id(),userId:u.id,mode:b.mode,coach,title:report.title||`${b.mode} coaching report`,createdAt:new Date().toISOString(),report};db.reports.unshift(saved);writeDb(db);return json(res,200,{report:saved});
     }
     return json(res,404,{error:'Not found'});
   }catch(e){if(!e.status||e.status>=500)console.error(e);return json(res,e.status||500,{error:e.message||'Something went wrong.'});}
