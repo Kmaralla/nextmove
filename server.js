@@ -42,6 +42,26 @@ function userFor(req){ const uid=sessions.get(cookies(req).session); return uid 
 function sessionCookie(sid){return `session=${sid}; HttpOnly; SameSite=Strict; Path=/${process.env.NODE_ENV==='production'?'; Secure':''}`;}
 function json(res,status,data){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));}
 function httpError(message,status){return Object.assign(new Error(message),{status});}
+function normalizeUsername(value){
+  return String(value||'').trim().replace(/^@+/,'').toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,20);
+}
+function usernameBaseFor(user){
+  return normalizeUsername(user.username)||normalizeUsername(user.name)||normalizeUsername(String(user.email||'').split('@')[0])||'nextmove';
+}
+function ensureUsernames(db){
+  const used=new Set();
+  for(const user of db.users||[]){
+    let base=usernameBaseFor(user);
+    if(base.length<3)base=`${base}user`.slice(0,20);
+    let next=base, n=2;
+    while(used.has(next)||next.length<3){
+      const suffix=String(n++);
+      next=`${base.slice(0,20-suffix.length)}${suffix}`;
+    }
+    user.username=next;
+    used.add(next);
+  }
+}
 const eventClients = new Map();
 function liveEvent(res,type,payload={}){
   res.write(`event: ${type}\n`);
@@ -115,9 +135,9 @@ function offlineAnalyzeReport(payload){
   };
 }
 function body(req, limit=55*1024*1024){return new Promise((resolve,reject)=>{let size=0,parts=[],done=false;req.on('data',c=>{if(done)return;size+=c.length;if(size>limit){done=true;reject(httpError('Upload is too large. Choose a smaller file or shorter clip.',413));req.destroy();}else parts.push(c)});req.on('end',()=>{if(done)return;try{resolve(JSON.parse(Buffer.concat(parts).toString()||'{}'))}catch{reject(httpError('The request could not be read. Please try again.',400))}});req.on('error',e=>{if(!done)reject(e)})});}
-function publicUser(u){return {id:u.id,name:u.name,email:u.email,age:u.age,role:u.role};}
+function publicUser(u){return {id:u.id,name:u.name,username:usernameBaseFor(u),email:u.email,age:u.age,role:u.role};}
 function canUseCoaching(u){return u.age>=MINIMUM_AGE;}
-function normalizeDb(db){for(const key of ['users','reports','friendRequests','friendships','friendMessages','parties','partyMessages','safetyReports','blockedUsers'])if(!Array.isArray(db[key]))db[key]=[];return db;}
+function normalizeDb(db){for(const key of ['users','reports','friendRequests','friendships','friendMessages','parties','partyMessages','safetyReports','blockedUsers'])if(!Array.isArray(db[key]))db[key]=[];ensureUsernames(db);return db;}
 function readAppDb(){return normalizeDb(readDb());}
 function isBlocked(db,a,b){return db.blockedUsers.some(x=>(x.userId===a&&x.blockedId===b)||(x.userId===b&&x.blockedId===a));}
 function friendIds(db,userId){return db.friendships.filter(f=>f.users.includes(userId)).map(f=>f.users.find(id=>id!==userId)).filter(fid=>!isBlocked(db,userId,fid));}
@@ -216,9 +236,13 @@ async function api(req,res,url){
       if(age<MINIMUM_AGE) return json(res,403,{error:'NextMove is available only for learners age 13 and older in this public MVP.'});
       if(age<18&&b.guardianPermission!==true) return json(res,400,{error:'Learners ages 13–17 must confirm they have parent or guardian permission.'});
       if(b.acceptTerms!==true) return json(res,400,{error:'You must confirm you are 13+ and agree to the Terms and Privacy Notice.'});
-      const db=readDb(); if(db.users.some(u=>u.email.toLowerCase()===b.email.toLowerCase())) return json(res,409,{error:'An account with that email already exists.'});
+      const username=normalizeUsername(b.username);
+      if(username.length<3) return json(res,400,{error:'Choose a username with at least 3 letters, numbers, or underscores. Do not use your real name.'});
+      const db=readAppDb();
+      if(db.users.some(u=>u.email.toLowerCase()===b.email.toLowerCase())) return json(res,409,{error:'An account with that email already exists.'});
+      if(db.users.some(user=>user.username===username)) return json(res,409,{error:'That username is already taken.'});
       const now=new Date().toISOString();
-      const u={id:id(),name:short(b.name,80),email:String(b.email).toLowerCase(),password:hashPassword(b.password),age,role:'learner',guardianPermissionConfirmed:age<18,termsAcceptedAt:now,privacyAcceptedAt:now,termsVersion:'2026-07-26',createdAt:now}; db.users.push(u);writeDb(db);
+      const u={id:id(),name:short(b.name,80),username,email:String(b.email).toLowerCase(),password:hashPassword(b.password),age,role:'learner',guardianPermissionConfirmed:age<18,termsAcceptedAt:now,privacyAcceptedAt:now,termsVersion:'2026-07-26',createdAt:now}; db.users.push(u);writeDb(db);
       const sid=token();sessions.set(sid,u.id);res.setHeader('Set-Cookie',sessionCookie(sid));
       return json(res,201,{user:publicUser(u)});
     }
@@ -255,15 +279,16 @@ async function api(req,res,url){
     }
     if(req.method==='GET'&&url.pathname==='/api/friends'){
       const db=readAppDb(),ids=friendIds(db,u.id),users=Object.fromEntries(db.users.map(user=>[user.id,user]));
-      const friends=ids.map(fid=>users[fid]).filter(Boolean).map(friend=>({id:friend.id,name:friend.name,email:friend.email,online:[...sessions.values()].includes(friend.id)}));
+      const friends=ids.map(fid=>users[fid]).filter(Boolean).map(friend=>({id:friend.id,name:friend.name,username:friend.username,online:[...sessions.values()].includes(friend.id)}));
       const incoming=db.friendRequests.filter(r=>r.to===u.id&&r.status==='pending').map(r=>({id:r.id,from:publicUser(users[r.from]),createdAt:r.createdAt})).filter(r=>r.from);
       const outgoing=db.friendRequests.filter(r=>r.from===u.id&&r.status==='pending').map(r=>({id:r.id,to:publicUser(users[r.to]),createdAt:r.createdAt})).filter(r=>r.to);
       const partyInvites=db.parties.filter(p=>p.invitedIds?.includes(u.id)).map(p=>({id:p.id,from:publicUser(users[p.ownerId])})).filter(p=>p.from);
       return json(res,200,{friends,incoming,outgoing,partyInvites});
     }
     if(req.method==='POST'&&url.pathname==='/api/friends/invite'){
-      const b=await body(req),email=String(b.email||'').trim().toLowerCase(),db=readAppDb(),target=db.users.find(x=>x.email===email);
-      if(!target) return json(res,404,{error:'No NextMove account found for that email.'});
+      const b=await body(req),username=normalizeUsername(b.username||b.handle||b.email),db=readAppDb(),target=db.users.find(x=>x.username===username);
+      if(username.length<3) return json(res,400,{error:'Enter their exact username.'});
+      if(!target) return json(res,404,{error:'No NextMove account found for that username.'});
       if(target.id===u.id) return json(res,400,{error:'You cannot invite yourself.'});
       if(areFriends(db,u.id,target.id)) return json(res,409,{error:'You are already friends.'});
       const existing=db.friendRequests.find(r=>r.status==='pending'&&((r.from===u.id&&r.to===target.id)||(r.from===target.id&&r.to===u.id)));
@@ -309,7 +334,7 @@ async function api(req,res,url){
     }
     if(req.method==='GET'&&url.pathname==='/api/party'){
       const db=readAppDb(),users=Object.fromEntries(db.users.map(user=>[user.id,user])),party=partyFor(db,u.id),isMember=party.memberIds.includes(u.id);
-      const members=(party.memberIds||[]).map(uid=>users[uid]).filter(Boolean).map(user=>({id:user.id,name:user.name,email:user.email,online:[...sessions.values()].includes(user.id)}));
+      const members=(party.memberIds||[]).map(uid=>users[uid]).filter(Boolean).map(user=>({id:user.id,name:user.name,username:user.username,online:[...sessions.values()].includes(user.id)}));
       const invited=(party.invitedIds||[]).map(uid=>users[uid]).filter(Boolean).map(publicUser);
       const reports=(isMember?(party.reportIds||[]):[]).map(rid=>db.reports.find(r=>r.id===rid)).filter(Boolean).map(({userId,...r})=>({...r,owner:users[userId]?.name||'Friend'}));
       const messages=isMember?db.partyMessages.filter(m=>m.partyId===party.id).slice(-80).map(m=>({...m,fromName:users[m.from]?.name||'Friend'})):[];

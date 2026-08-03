@@ -179,3 +179,53 @@ dialog{width:min(470px,calc(100% - 30px));border:0;border-radius:16px;padding:38
 .curve-panel{margin:13px auto 0;max-width:520px;background:#fff;border:1px solid #e5e1d8;border-radius:16px;padding:12px;box-shadow:0 12px 28px #2527440c}.curve-panel small{display:block;color:var(--purple);margin-bottom:8px}.curve-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.curve-buttons button{border:1px solid #d9d5ea;background:#f7f5ff;color:#2f2b50;border-radius:999px;padding:9px 8px;font-size:12px;font-weight:900}.curve-buttons button.active,.curve-buttons button:hover{background:var(--purple);border-color:var(--purple);color:#fff}.game-dialog .game-ball.user-shot,.game-dialog .game-ball.shot-saved{transition:none!important;animation:curveShot .9s cubic-bezier(.18,.84,.25,1) forwards!important}.game-dialog .game-ball.shot-saved{filter:drop-shadow(0 0 10px #ffffff99)}@keyframes curveShot{0%{transform:translate(0,0) scale(1) rotate(0)}45%{transform:translate(var(--curve-mid-x),var(--curve-mid-y)) scale(.78) rotate(170deg)}100%{transform:translate(var(--shot-x),var(--shot-y)) scale(.62) rotate(390deg)}}@media(max-width:640px){.curve-buttons{grid-template-columns:1fr 1fr}.curve-buttons button{font-size:11px}}
 .fields .jersey-check{display:flex;align-items:center;gap:9px;margin-top:29px;border:1px solid #e5e1d8;background:#fbfaf7;border-radius:12px;padding:12px;font-size:12px}.fields .jersey-check input{width:auto;margin:0;accent-color:var(--purple)}
 .friends-safety-note{position:relative;z-index:1;margin:-10px 0 18px;background:#fff8dc;border:1px solid #e6d18b;color:#675019;border-radius:14px;padding:13px 16px;font-size:13px;line-height:1.5}.friend-open{display:block;width:100%;border:0;background:transparent;text-align:left;padding:0;color:inherit}.friend-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.text-btn.danger,.report-message{color:#b44747}.report-message{display:block;margin-top:8px;border:0;background:transparent;font-size:11px;font-weight:900;padding:0}.party-leave{width:100%;margin-top:12px}
+
+/* Messenger-style Friends layout */
+.messenger-layout{grid-template-columns:minmax(285px,360px) minmax(0,1fr);align-items:stretch}
+.friend-directory{grid-column:1;grid-row:1}
+.friend-chat-card{grid-column:2;grid-row:1 / span 2;display:flex;flex-direction:column;min-height:68vh}
+.party-rail{grid-column:1;grid-row:2}
+.friend-chat-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
+.friend-chat-head small{display:block;font-size:10px;letter-spacing:1.7px;font-weight:900;color:var(--purple);margin-bottom:4px}
+.friend-chat-head h3{margin:0!important}
+#friendChatStatus{border:1px solid #ded8f5;background:#f5f3fc;color:var(--purple);border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900;white-space:nowrap}
+.friend-chat-card .mini-chat{flex:1;min-height:420px;max-height:none;margin:0 0 14px;overflow:auto}
+.friend-chat-card .compact-chat{display:flex;gap:10px}
+.friend-chat-card .compact-chat input{flex:1}
+.friend-list{max-height:360px;overflow:auto;padding-right:3px}
+.username-help{font-size:12px!important;color:var(--muted)!important;margin:-4px 0 12px!important}
+.friend-row.selected{border-color:#aa9cf5;background:linear-gradient(145deg,#f1edff,#fff);box-shadow:0 16px 36px #7564db18}
+.friend-row.selected b:after{content:' Selected';color:var(--purple);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-left:6px}
+@media(max-width:1100px){.messenger-layout{grid-template-columns:1fr}.friend-directory,.friend-chat-card,.party-rail{grid-column:1;grid-row:auto}.friend-chat-card{min-height:560px}.friend-chat-card .mini-chat{min-height:340px}}
+
+/* iPad Messages-inspired polish */
+.messenger-layout{gap:18px;min-height:72vh}
+.friend-directory,.friend-chat-card{background:rgba(255,255,255,.86);backdrop-filter:blur(18px)}
+.friend-directory{padding:20px!important}
+.friend-directory h3{font-size:24px!important;margin-bottom:12px!important}
+.friend-directory .friend-form{border-radius:22px;background:#f1eff8;padding:8px;margin-bottom:8px}
+.friend-directory .friend-form input{border:0;background:#fff;border-radius:999px;padding:13px 15px}
+.friend-directory .friend-form button{border-radius:999px;padding-inline:18px}
+.friend-directory .friend-columns{display:flex;flex-direction:column-reverse;gap:16px}
+.friend-directory .mini-list{gap:7px}
+.friend-row{border:0!important;border-radius:18px!important;background:transparent!important;box-shadow:none!important;padding:13px 14px!important}
+.friend-row:hover{transform:none!important;background:#f4f1ff!important}
+.friend-row.selected{background:linear-gradient(135deg,#7564db,#aa9cf5)!important;color:#fff!important;box-shadow:0 14px 30px #7564db28!important}
+.friend-row.selected b,.friend-row.selected small,.friend-row.selected .text-btn{color:#fff!important}
+.friend-row.selected small{opacity:.82}
+.friend-row.selected b:after{content:''}
+.friend-actions{opacity:.72}
+.friend-chat-card{padding:0!important;overflow:hidden;border-color:#dcd8ee!important}
+.friend-chat-card:before{display:none}
+.friend-chat-head{padding:18px 22px;margin:0;border-bottom:1px solid #e7e3f4;background:rgba(255,255,255,.9);align-items:center}
+.friend-chat-head small{color:#8c8d95}
+#friendChatStatus{background:#eef9f1;border-color:#c7ebd2;color:#2f7a49}
+.friend-chat-card .mini-chat{border:0;border-radius:0;background:linear-gradient(180deg,#f9f9fd,#f0eef8);box-shadow:none;padding:24px;gap:9px}
+.friend-chat-card .chat-bubble{max-width:min(72%,560px);border-radius:22px;padding:11px 15px;box-shadow:0 6px 18px #2527440a}
+.friend-chat-card .chat-bubble.coach{background:#fff;color:#252744;border-bottom-left-radius:7px}
+.friend-chat-card .chat-bubble.user{background:linear-gradient(135deg,#7564db,#5d8dff);color:#fff;border-bottom-right-radius:7px}
+.friend-chat-card .report-message{opacity:.6;font-size:10px}
+.friend-chat-card .compact-chat{padding:14px 18px 18px;border-top:1px solid #e7e3f4;background:#fff}
+.friend-chat-card .compact-chat input{border:1px solid #dcd8ee;border-radius:999px;background:#fbfaf7;padding:14px 17px}
+.friend-chat-card .compact-chat button{border-radius:999px;padding-inline:22px}
+@media(max-width:640px){.friend-chat-card .chat-bubble{max-width:88%}.friend-chat-card .compact-chat{display:grid}.friend-chat-card .compact-chat button{width:100%}}

@@ -40,7 +40,7 @@ test('adult account can analyze homework, gaming, and sports safely',async()=>{
   assert.equal(noTerms.status,400);assert.match(noTerms.data.error,/Terms and Privacy/);
   const future=await call('/api/signup',{method:'POST',body:{name:'Future User',email:'future@example.test',password:'password123',dob:futureDob(),acceptTerms:true}});
   assert.equal(future.status,400);assert.match(future.data.error,/date of birth/);
-  const signup=await call('/api/signup',{method:'POST',body:{name:'Test Learner',email:'adult@example.test',password:'password123',dob:dobForAge(18),acceptTerms:true}});
+  const signup=await call('/api/signup',{method:'POST',body:{name:'Test Learner',username:'testlearner',email:'adult@example.test',password:'password123',dob:dobForAge(18),acceptTerms:true}});
   assert.equal(signup.status,201);const cookie=signup.cookie.split(';')[0];
   const home=await call('/api/analyze',{method:'POST',cookie,body:{mode:'homework',meta:{subject:'Math',level:'College',coach:'Maya'},file:{name:'work.pdf',kind:'pdf',data:pdf}}});
   assert.equal(home.status,200);assert.equal(home.data.report.mode,'homework');
@@ -55,9 +55,9 @@ test('adult account can analyze homework, gaming, and sports safely',async()=>{
   const reports=await call('/api/reports',{cookie});assert.equal(reports.status,200);assert.equal(reports.data.reports.length,3);
   const teenNoGuardian=await call('/api/signup',{method:'POST',body:{name:'Teen No Guardian',email:'teen-no-guardian@example.test',password:'password123',dob:dobForAge(16),acceptTerms:true}});
   assert.equal(teenNoGuardian.status,400);assert.match(teenNoGuardian.data.error,/guardian permission/);
-  const friendSignup=await call('/api/signup',{method:'POST',body:{name:'Study Friend',email:'friend@example.test',password:'password123',dob:dobForAge(16),acceptTerms:true,guardianPermission:true}});
+  const friendSignup=await call('/api/signup',{method:'POST',body:{name:'Study Friend',username:'studyfriend',email:'friend@example.test',password:'password123',dob:dobForAge(16),acceptTerms:true,guardianPermission:true}});
   assert.equal(friendSignup.status,201);const friendCookie=friendSignup.cookie.split(';')[0];
-  const invite=await call('/api/friends/invite',{method:'POST',cookie,body:{email:'friend@example.test'}});assert.equal(invite.status,201);
+  const invite=await call('/api/friends/invite',{method:'POST',cookie,body:{username:'studyfriend'}});assert.equal(invite.status,201);
   const friendInbox=await call('/api/friends',{cookie:friendCookie});assert.equal(friendInbox.data.incoming.length,1);
   const accept=await call('/api/friends/respond',{method:'POST',cookie:friendCookie,body:{requestId:friendInbox.data.incoming[0].id,accept:true}});assert.equal(accept.status,200);
   const friendChat=await call('/api/friends/chat',{method:'POST',cookie,body:{friendId:friendSignup.data.user.id,text:'Want to review this together?'}});assert.equal(friendChat.status,201);
