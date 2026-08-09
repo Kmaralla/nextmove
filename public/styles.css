@@ -15,9 +15,16 @@ dialog{width:min(470px,calc(100% - 30px));border:0;border-radius:16px;padding:38
 @media(max-width:640px){.topbar{height:auto;gap:12px;padding:16px;align-items:flex-start}.nav-actions{gap:4px}.nav-actions .dark-btn,.nav-actions .text-btn{padding:10px 11px;font-size:13px}.account-strip{padding:14px 20px;display:block}.account-strip small{display:block;margin-top:3px}.hero-card{padding:30px}.hero-card h2{letter-spacing:-2px}.form-panel,.promise{padding:26px}.fields{grid-template-columns:1fr}.face-option{display:block}.face-option input{margin-top:10px}.report-grid{grid-template-columns:1fr}}
 
 /* Learning rewards and themed challenges */
-.coin-pill{border:1px solid #d7d2f2;background:#f0edff;color:#312d54;padding:9px 13px;border-radius:999px;font-weight:800}.coin-pill span,.coin-balance>span,.reward-gem{color:#e0a72f;text-shadow:0 1px 0 #9b6710}.challenge-zone{background:#1d2032;color:#fff;border-radius:24px;padding:30px;margin:22px 0;overflow:hidden}.challenge-head{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:22px}.challenge-head h2{font:800 36px Manrope;margin:8px 0}.challenge-head p{color:#bfc1d0;margin:0}.coin-balance{display:flex;align-items:center;gap:12px;background:#ffffff10;border:1px solid #ffffff17;padding:13px 17px;border-radius:16px;white-space:nowrap}.coin-balance>span{font-size:26px}.coin-balance small,.coin-balance b{display:block}.coin-balance small{font-size:9px;letter-spacing:1.5px;color:#aeb0c0}.challenge-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:14px}.challenge-card{background:#fff;color:var(--ink);border-radius:19px;padding:18px;overflow:hidden;position:relative}.challenge-card small{font-size:9px;font-weight:900;letter-spacing:1.3px;color:#777986}.challenge-card h3{font:800 21px Manrope;margin:9px 0 5px}.challenge-card p{color:var(--muted);font-size:13px;line-height:1.5;min-height:58px}.challenge-scene{height:112px;border-radius:14px;margin-bottom:15px;display:grid;place-items:center;font-size:45px;position:relative}.penalty .challenge-scene{background:linear-gradient(#88c9f1 0 47%,#56a961 47%)}.space .challenge-scene{background:radial-gradient(circle at 20% 20%,#fff 0 1px,transparent 2px),#292956}.treasure .challenge-scene{background:#efe1b9}.goal-net{font-size:58px}.ball{position:absolute;font-size:27px;bottom:9px;left:25%}.locked:after{content:'SOON';position:absolute;right:13px;top:13px;background:#171925;color:#fff;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:900;letter-spacing:1px}.reward-claim{margin-top:14px;background:linear-gradient(110deg,#fff8dc,#fff);border:1px solid #e6d18b;border-radius:16px;padding:20px;display:flex;justify-content:space-between;align-items:center;gap:20px}.reward-claim>div{display:flex;align-items:center;gap:15px}.reward-gem{font-size:32px}.reward-claim h3{font:800 18px Manrope;margin:4px 0}.reward-claim p{color:var(--muted);margin:0;font-size:13px}.reward-claim small{font-size:9px;letter-spacing:1.5px;font-weight:900;color:#92701a}.game-dialog{width:min(610px,calc(100% - 24px));padding:28px;background:#f8f7f2}.game-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}.mini-score{background:#191b2a;color:#fff;border-radius:999px;padding:8px 13px}.stadium{height:225px;border-radius:18px;background:linear-gradient(#72bde9 0 48%,#4f9e59 48%);position:relative;overflow:hidden;display:grid;place-items:center}.crowd{position:absolute;top:16px;color:#ffffffb5;letter-spacing:8px}.goal{font-size:105px;margin-top:20px}.game-ball{position:absolute;font-size:37px;bottom:16px;transition:.55s cubic-bezier(.2,.8,.3,1)}.game-ball.shoot{transform:translateY(-115px) scale(.55) rotate(360deg)}.game-ball.miss{transform:translate(130px,-90px) scale(.6) rotate(300deg)}.question-box{text-align:center;padding:22px 12px 0}.question-box small{font-size:10px;letter-spacing:1.5px;font-weight:900;color:#7d7e88}.question-box h2{font:800 32px Manrope;margin:10px}.question-box form{display:flex;justify-content:center;gap:8px}.question-box input{width:150px;border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;font-size:18px}.question-box p{min-height:22px;font-weight:700}.game-finish{text-align:center;padding:24px}.game-finish>span{font-size:54px}.game-finish h2{font:800 30px Manrope;margin:8px}.game-finish p{color:var(--muted)}
+.coin-pill{border:1px solid #d7d2f2;background:#f0edff;color:#312d54;padding:8px 13px;border-radius:999px;font-weight:800;display:inline-flex;align-items:center;gap:7px}.nm-coin{width:25px;height:25px;border-radius:50%;display:inline-grid;place-items:center;background:radial-gradient(circle at 32% 28%,#fff6b8 0 18%,#f2c94c 35%,#d89c16 72%,#a96f0c 100%);box-shadow:inset 0 0 0 2px #fff3a7,inset 0 -4px 7px #9b671044,0 2px 7px #17192522;color:#171925;text-shadow:none}.nm-coin svg{width:15px;height:15px;display:block;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}.coin-balance>.nm-coin{width:33px;height:33px}.coin-balance>.nm-coin svg{width:19px;height:19px}.reward-gem.nm-coin{width:42px;height:42px;flex:0 0 auto}.reward-gem.nm-coin svg{width:24px;height:24px}.challenge-zone{background:#1d2032;color:#fff;border-radius:24px;padding:30px;margin:22px 0;overflow:hidden}.challenge-head{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:22px}.challenge-head h2{font:800 36px Manrope;margin:8px 0}.challenge-head p{color:#bfc1d0;margin:0}.coin-balance{display:flex;align-items:center;gap:12px;background:#ffffff10;border:1px solid #ffffff17;padding:13px 17px;border-radius:16px;white-space:nowrap}.coin-balance small,.coin-balance b{display:block}.coin-balance small{font-size:9px;letter-spacing:1.5px;color:#aeb0c0}.challenge-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:14px}.challenge-card{background:#fff;color:var(--ink);border-radius:19px;padding:18px;overflow:hidden;position:relative}.challenge-card small{font-size:9px;font-weight:900;letter-spacing:1.3px;color:#777986}.challenge-card h3{font:800 21px Manrope;margin:9px 0 5px}.challenge-card p{color:var(--muted);font-size:13px;line-height:1.5;min-height:58px}.challenge-scene{height:112px;border-radius:14px;margin-bottom:15px;display:grid;place-items:center;font-size:45px;position:relative}.penalty .challenge-scene{background:linear-gradient(#88c9f1 0 47%,#56a961 47%)}.space .challenge-scene{background:radial-gradient(circle at 20% 20%,#fff 0 1px,transparent 2px),#292956}.treasure .challenge-scene{background:#efe1b9}.goal-net{font-size:58px}.ball{position:absolute;font-size:27px;bottom:9px;left:25%}.locked:after{content:'SOON';position:absolute;right:13px;top:13px;background:#171925;color:#fff;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:900;letter-spacing:1px}.reward-claim{margin-top:14px;background:linear-gradient(110deg,#fff8dc,#fff);border:1px solid #e6d18b;border-radius:16px;padding:20px;display:flex;justify-content:space-between;align-items:center;gap:20px}.reward-claim>div{display:flex;align-items:center;gap:15px}.reward-claim h3{font:800 18px Manrope;margin:4px 0}.reward-claim p{color:var(--muted);margin:0;font-size:13px}.reward-claim small{font-size:9px;letter-spacing:1.5px;font-weight:900;color:#92701a}.game-dialog{width:min(610px,calc(100% - 24px));padding:28px;background:#f8f7f2}.game-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}.mini-score{background:#191b2a;color:#fff;border-radius:999px;padding:8px 13px}.stadium{height:225px;border-radius:18px;background:linear-gradient(#72bde9 0 48%,#4f9e59 48%);position:relative;overflow:hidden;display:grid;place-items:center}.crowd{position:absolute;top:16px;color:#ffffffb5;letter-spacing:8px}.goal{font-size:105px;margin-top:20px}.game-ball{position:absolute;font-size:37px;bottom:16px;transition:.55s cubic-bezier(.2,.8,.3,1)}.game-ball.shoot{transform:translateY(-115px) scale(.55) rotate(360deg)}.game-ball.miss{transform:translate(130px,-90px) scale(.6) rotate(300deg)}.question-box{text-align:center;padding:22px 12px 0}.question-box small{font-size:10px;letter-spacing:1.5px;font-weight:900;color:#7d7e88}.question-box h2{font:800 32px Manrope;margin:10px}.question-box form{display:flex;justify-content:center;gap:8px}.question-box input{width:150px;border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;font-size:18px}.question-box p{min-height:22px;font-weight:700}.game-finish{text-align:center;padding:24px}.game-finish>span{font-size:54px}.game-finish h2{font:800 30px Manrope;margin:8px}.game-finish p{color:var(--muted)}
 @media(max-width:1000px){.challenge-grid{grid-template-columns:1fr}.challenge-head{align-items:flex-start}.challenge-card p{min-height:0}}
 @media(max-width:640px){.coin-pill{padding:9px}.coin-pill span{display:none}.challenge-zone{padding:20px}.challenge-head,.reward-claim{display:block}.coin-balance{margin-top:16px}.reward-claim button{width:100%;margin-top:15px}.question-box form{display:grid}.question-box input{width:100%}}
+
+/* Real NextMove coin treatment */
+.nm-coin{position:relative;overflow:hidden;background:linear-gradient(145deg,#ffe88a 0%,#f7c948 24%,#d99218 58%,#8d5a09 100%);border:1px solid #8b5a10;box-shadow:inset 0 2px 2px #fff7bd,inset 0 -5px 8px #8b5a1055,inset 0 0 0 3px #f6d45d,0 3px 8px #1719252b;color:#21170a}
+.nm-coin:before{content:'';position:absolute;inset:4px;border-radius:50%;border:1px solid #8b5a1040;background:radial-gradient(circle at 34% 25%,#fff3a0 0 12%,#efb735 42%,#c47c12 100%);box-shadow:inset 0 1px 3px #fff8c5,inset 0 -3px 5px #7a4a0b55}
+.nm-coin:after{content:'';position:absolute;width:58%;height:26%;left:14%;top:10%;border-radius:50%;background:linear-gradient(90deg,#ffffffb8,#ffffff1a);transform:rotate(-28deg);filter:blur(.2px)}
+.nm-coin svg{position:relative;z-index:1;stroke:#2c1d09;filter:drop-shadow(0 1px 0 #ffe991) drop-shadow(0 -1px 0 #7a4a0b55)}
+.coin-pill .nm-coin{display:inline-grid}
 
 /* Larger goal with free aiming and save detection */
 .game-dialog .stadium{height:300px}.game-dialog .goal{font-size:178px;margin-top:4px;line-height:1}.game-dialog .game-ball{bottom:15px;z-index:3}.game-dialog .keeper{top:137px;font-size:38px}.game-dialog .aim-controls{top:82px;width:min(330px,82%);height:142px;border:2px dashed #ffffffaa;border-radius:12px;background:#ffffff08;display:grid;place-items:center;cursor:crosshair}.game-dialog .aim-controls span{color:#fff;background:#171925bb;border-radius:999px;padding:7px 11px;font-size:11px;font-weight:900;letter-spacing:.5px;pointer-events:none}.game-dialog .aim-controls:hover{background:#ffffff18}.game-ball.user-shot,.game-ball.shot-saved{transform:translate(var(--shot-x),var(--shot-y)) scale(.62) rotate(360deg)!important}.keeper.free-dive{transform:translate(var(--keeper-x),var(--keeper-y)) rotate(-18deg)!important}
@@ -120,9 +127,10 @@ dialog{width:min(470px,calc(100% - 30px));border:0;border-radius:16px;padding:38
 @media(max-width:760px){.daily-goal,.quiz-actions{display:block}.goal-progress{width:100%;margin-top:14px}.quiz-grid,.coin-wallet{grid-template-columns:1fr}.quiz-actions .dark-btn{width:100%;margin-bottom:10px}}
 
 /* Friends page theme polish */
-#friendsView{position:relative;overflow:hidden}
-#friendsView:before{content:'';position:absolute;width:420px;height:420px;border-radius:50%;background:#7564db12;right:-150px;top:24px;pointer-events:none}
-#friendsView .section-title,#friendsView .friends-layout{position:relative;z-index:1}
+#friendsView,#partyView{position:relative;overflow:hidden}
+#friendsView:before,#partyView:before{content:'';position:absolute;width:420px;height:420px;border-radius:50%;background:#7564db12;right:-150px;top:24px;pointer-events:none}
+#partyView:before{background:#4ba77612}
+#friendsView .section-title,#friendsView .friends-layout,#partyView .section-title,#partyView .friends-layout{position:relative;z-index:1}
 .friends-layout>.account-card{border-radius:24px;padding:26px;box-shadow:0 18px 50px #2527440f;overflow:hidden;position:relative}
 .friends-layout>.account-card:before{content:'';position:absolute;inset:0 0 auto;height:7px;background:linear-gradient(90deg,var(--purple),#aa9cf5);opacity:.9}
 .friends-layout>.account-card h3{font:900 25px Manrope;margin:5px 0 8px;letter-spacing:-1px}
@@ -185,6 +193,53 @@ dialog{width:min(470px,calc(100% - 30px));border:0;border-radius:16px;padding:38
 .friend-directory{grid-column:1;grid-row:1}
 .friend-chat-card{grid-column:2;grid-row:1 / span 2;display:flex;flex-direction:column;min-height:68vh}
 .party-rail{grid-column:1;grid-row:2}
+.party-layout{grid-template-columns:1fr;max-width:980px;margin:0 auto}
+.party-page-card{width:100%}
+#partyView .party-card .mini-chat{min-height:340px;max-height:420px}
+.party-messenger-layout{grid-template-columns:minmax(285px,360px) minmax(0,1fr);align-items:stretch;gap:18px;min-height:72vh}
+.party-directory{grid-column:1;grid-row:1;padding:20px!important;background:rgba(255,255,255,.86);backdrop-filter:blur(18px)}
+.party-directory h3{font-size:24px!important;margin-bottom:12px!important}
+.party-directory h4{letter-spacing:1.2px;text-transform:uppercase;color:#7d7e88;font-size:11px;margin:18px 0 8px}
+.party-directory .friend-form{border-radius:22px;background:#f1eff8;padding:8px;margin-bottom:8px}
+.party-directory .friend-form input{border:0;background:#fff;border-radius:999px;padding:13px 15px}
+.party-directory .friend-form select,.party-rename select{border:0;background:#fff;border-radius:999px;padding:0 13px;min-height:45px;color:#171925;font-weight:800}
+.party-directory .friend-form button{border-radius:999px;padding-inline:18px}
+.party-create-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(140px,.7fr) auto;align-items:center}
+.party-row{border:0!important;border-radius:18px!important;background:transparent!important;box-shadow:none!important;padding:13px 14px!important;text-align:left;width:100%}
+.party-row:hover{transform:none!important;background:#f4f1ff!important}
+.party-row.selected{background:linear-gradient(135deg,#252744,#7564db)!important;color:#fff!important;box-shadow:0 14px 30px #25274428!important}
+.party-row.selected b,.party-row.selected small{color:#fff!important}
+.party-row.selected small{opacity:.82}
+.party-chat-card{grid-column:2;grid-row:1;display:flex;flex-direction:column;min-height:68vh;padding:0!important;overflow:hidden}
+.party-chat-card:before{display:none}
+.party-chat-card .friend-chat-head{background:rgba(29,32,50,.96);border-bottom:1px solid #ffffff18}
+.party-chat-card .friend-chat-head small{color:#c9c2ff}
+.party-chat-card #partyHostBadge{border:1px solid #ffffff24;background:#ffffff12;color:#fff;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900;white-space:nowrap}
+.party-rename{display:flex;gap:10px;padding:14px 18px;border-bottom:1px solid #ffffff18}
+.party-rename input{flex:1;border-radius:999px;border:1px solid #ffffff24;background:#fff;color:#171925;padding:12px 15px}
+.party-rename select{border:1px solid #ffffff24;min-width:150px}
+.party-members{padding:14px 18px 0}
+.party-chat-card .party-invite{margin:14px 18px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
+.party-chat-card .mini-chat{flex:1;min-height:300px;max-height:none;margin:0;border-radius:0;border-left:0;border-right:0}
+.party-chat-card .compact-chat{padding:14px 18px 18px;border-top:1px solid #ffffff18;background:#171925}
+.party-chat-card .compact-chat input{border-radius:999px;padding:14px 17px}
+.party-chat-card .compact-chat button{border-radius:999px;padding-inline:22px}
+.party-chat-card h4{padding:0 18px}
+.party-chat-card #partyReports{padding:0 18px 18px}
+.hidden{display:none!important}
+.party-theme-classic{background:radial-gradient(circle at 90% 8%,#7564db33,transparent 27%),linear-gradient(145deg,#1d2032,#252744)!important}
+.party-theme-stadium{background:radial-gradient(circle at 92% 7%,#4ba77655,transparent 28%),linear-gradient(145deg,#173321,#244f35)!important}
+.party-theme-stadium .friend-chat-head{background:linear-gradient(135deg,#15331f,#245338)}
+.party-theme-court{background:radial-gradient(circle at 92% 7%,#f2a65a55,transparent 28%),linear-gradient(145deg,#2b1f18,#5e3621)!important}
+.party-theme-court .friend-chat-head{background:linear-gradient(135deg,#2b1f18,#6a3c20)}
+.party-theme-space{background:radial-gradient(circle at 14% 16%,#9fb4ff44,transparent 24%),radial-gradient(circle at 88% 8%,#7564db66,transparent 30%),linear-gradient(145deg,#101323,#272b57)!important}
+.party-theme-space .friend-chat-head{background:linear-gradient(135deg,#101323,#252b62)}
+.party-theme-study{background:radial-gradient(circle at 92% 7%,#fff8dc88,transparent 28%),linear-gradient(145deg,#27221b,#514334)!important}
+.party-theme-study .friend-chat-head{background:linear-gradient(135deg,#27221b,#574735)}
+.party-theme-cricket{background:radial-gradient(circle at 92% 7%,#d8b15d66,transparent 28%),linear-gradient(145deg,#173127,#2d5943)!important}
+.party-theme-cricket .friend-chat-head{background:linear-gradient(135deg,#173127,#326048)}
+@media(max-width:1100px){.party-messenger-layout{grid-template-columns:1fr}.party-directory,.party-chat-card{grid-column:1;grid-row:auto}.party-chat-card{min-height:560px}.party-chat-card .compact-chat{position:sticky;bottom:0;z-index:4}}
+@media(max-width:760px){.party-create-form,.party-rename,.party-chat-card .party-invite{grid-template-columns:1fr;display:grid}.party-rename select,.party-create-form select{width:100%}}
 .friend-chat-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
 .friend-chat-head small{display:block;font-size:10px;letter-spacing:1.7px;font-weight:900;color:var(--purple);margin-bottom:4px}
 .friend-chat-head h3{margin:0!important}
@@ -229,3 +284,13 @@ dialog{width:min(470px,calc(100% - 30px));border:0;border-radius:16px;padding:38
 .friend-chat-card .compact-chat input{border:1px solid #dcd8ee;border-radius:999px;background:#fbfaf7;padding:14px 17px}
 .friend-chat-card .compact-chat button{border-radius:999px;padding-inline:22px}
 @media(max-width:640px){.friend-chat-card .chat-bubble{max-width:88%}.friend-chat-card .compact-chat{display:grid}.friend-chat-card .compact-chat button{width:100%}}
+
+/* ChatGPT-style fixed friend composer */
+@media(min-width:1101px){
+  .friend-chat-card{position:sticky;top:132px;height:calc(100vh - 154px);min-height:560px;max-height:760px}
+  .friend-chat-card .mini-chat{min-height:0;overflow:auto;padding-bottom:34px}
+  .friend-chat-card .compact-chat{position:relative;z-index:3;box-shadow:0 -18px 34px #f0eef8}
+}
+@media(max-width:1100px){
+  .friend-chat-card .compact-chat{position:sticky;bottom:0;z-index:4;box-shadow:0 -18px 34px #f0eef8}
+}

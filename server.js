@@ -143,7 +143,29 @@ function isBlocked(db,a,b){return db.blockedUsers.some(x=>(x.userId===a&&x.block
 function friendIds(db,userId){return db.friendships.filter(f=>f.users.includes(userId)).map(f=>f.users.find(id=>id!==userId)).filter(fid=>!isBlocked(db,userId,fid));}
 function areFriends(db,a,b){return !isBlocked(db,a,b)&&db.friendships.some(f=>f.users.includes(a)&&f.users.includes(b));}
 function friendChatId(a,b){return [a,b].sort().join(':');}
-function partyFor(db,userId){let party=db.parties.find(p=>p.memberIds?.includes(userId)&&p.ownerId!==userId)||db.parties.find(p=>p.ownerId===userId||p.memberIds?.includes(userId)||p.invitedIds?.includes(userId));if(!party){party={id:id(),ownerId:userId,memberIds:[userId],invitedIds:[],reportIds:[],createdAt:new Date().toISOString()};db.parties.push(party)}party.memberIds=[...new Set([party.ownerId,...(party.memberIds||[])])];party.invitedIds=[...new Set(party.invitedIds||[])].filter(x=>!party.memberIds.includes(x));party.reportIds=[...new Set(party.reportIds||[])];return party;}
+function cleanPartyName(value,fallback='NextMove Party'){const name=String(value||'').trim().replace(/\s+/g,' ').slice(0,40);return name||fallback;}
+const PARTY_THEMES=new Set(['classic','stadium','court','space','study','cricket']);
+function cleanPartyTheme(value){const theme=String(value||'classic').trim().toLowerCase();return PARTY_THEMES.has(theme)?theme:'classic';}
+function defaultPartyName(db,userId){const user=(db.users||[]).find(u=>u.id===userId);return cleanPartyName(user?.name?`${user.name}'s Party`:'My Party');}
+function normalizeParty(db,party,fallbackUserId){
+  if(!party)return null;
+  party.memberIds=[...new Set([party.ownerId,...(party.memberIds||[])].filter(Boolean))];
+  party.invitedIds=[...new Set(party.invitedIds||[])].filter(x=>!party.memberIds.includes(x));
+  party.reportIds=[...new Set(party.reportIds||[])];
+  party.name=cleanPartyName(party.name,defaultPartyName(db,party.ownerId||fallbackUserId));
+  party.theme=cleanPartyTheme(party.theme);
+  return party;
+}
+function canAccessParty(p,userId){return !!p&&(p.ownerId===userId||p.memberIds?.includes(userId)||p.invitedIds?.includes(userId));}
+function partyFor(db,userId,partyId){
+  const requested=partyId?db.parties.find(p=>p.id===partyId&&canAccessParty(p,userId)):null;
+  let party=requested||(!partyId&&(db.parties.find(p=>p.memberIds?.includes(userId)&&p.ownerId!==userId)||db.parties.find(p=>p.ownerId===userId||p.memberIds?.includes(userId)||p.invitedIds?.includes(userId))));
+  if(!party&&!partyId){party={id:id(),name:defaultPartyName(db,userId),ownerId:userId,memberIds:[userId],invitedIds:[],reportIds:[],createdAt:new Date().toISOString()};db.parties.push(party)}
+  return normalizeParty(db,party,userId);
+}
+function partiesFor(db,userId){
+  return db.parties.filter(p=>p.ownerId===userId||p.memberIds?.includes(userId)).map(p=>normalizeParty(db,p,userId)).filter(Boolean);
+}
 function accessBlockMessage(u){
   return u.age<MINIMUM_AGE
     ? 'NextMove is available only for learners age 13 and older in this public MVP.'
@@ -333,15 +355,30 @@ async function api(req,res,url){
       const message={id:id(),chatId:friendChatId(u.id,friendId),from:u.id,to:friendId,text,createdAt:new Date().toISOString()};db.friendMessages.push(message);writeDb(db);notifyUsers([u.id,friendId],'friends-updated',{reason:'friend-message'});return json(res,201,{message});
     }
     if(req.method==='GET'&&url.pathname==='/api/party'){
-      const db=readAppDb(),users=Object.fromEntries(db.users.map(user=>[user.id,user])),party=partyFor(db,u.id),isMember=party.memberIds.includes(u.id);
+      const db=readAppDb(),users=Object.fromEntries(db.users.map(user=>[user.id,user])),party=partyFor(db,u.id,String(url.searchParams.get('partyId')||''));
+      if(!party) return json(res,404,{error:'Party not found.'});
+      const isMember=party.memberIds.includes(u.id);
       const members=(party.memberIds||[]).map(uid=>users[uid]).filter(Boolean).map(user=>({id:user.id,name:user.name,username:user.username,online:[...sessions.values()].includes(user.id)}));
       const invited=(party.invitedIds||[]).map(uid=>users[uid]).filter(Boolean).map(publicUser);
       const reports=(isMember?(party.reportIds||[]):[]).map(rid=>db.reports.find(r=>r.id===rid)).filter(Boolean).map(({userId,...r})=>({...r,owner:users[userId]?.name||'Friend'}));
       const messages=isMember?db.partyMessages.filter(m=>m.partyId===party.id).slice(-80).map(m=>({...m,fromName:users[m.from]?.name||'Friend'})):[];
-      writeDb(db);return json(res,200,{party:{id:party.id,ownerId:party.ownerId,isMember,members,invited,reports,messages}});
+      const parties=partiesFor(db,u.id).map(p=>({id:p.id,name:p.name,theme:p.theme,ownerId:p.ownerId,isOwner:p.ownerId===u.id,memberCount:(p.memberIds||[]).length,createdAt:p.createdAt}));
+      writeDb(db);return json(res,200,{parties,party:{id:party.id,name:party.name,theme:party.theme,ownerId:party.ownerId,isOwner:party.ownerId===u.id,isMember,members,invited,reports,messages}});
+    }
+    if(req.method==='POST'&&url.pathname==='/api/party/create'){
+      const b=await body(req),db=readAppDb(),name=cleanPartyName(b.name,'New Party'),theme=cleanPartyTheme(b.theme);
+      const party={id:id(),name,theme,ownerId:u.id,memberIds:[u.id],invitedIds:[],reportIds:[],createdAt:new Date().toISOString()};
+      db.parties.push(party);writeDb(db);notifyUsers([u.id],'party-updated',{reason:'party-create'});return json(res,201,{party:{id:party.id,name:party.name,theme:party.theme}});
+    }
+    if(req.method==='POST'&&url.pathname==='/api/party/name'){
+      const b=await body(req),db=readAppDb(),party=partyFor(db,u.id,String(b.partyId||'')),name=cleanPartyName(b.name,'NextMove Party'),theme=cleanPartyTheme(b.theme);
+      if(!party) return json(res,404,{error:'Party not found.'});
+      if(party.ownerId!==u.id) return json(res,403,{error:'Only the host can rename this party.'});
+      party.name=name;party.theme=theme;writeDb(db);notifyUsers(party.memberIds||[],'party-updated',{reason:'party-name'});return json(res,200,{ok:true,name,theme});
     }
     if(req.method==='POST'&&url.pathname==='/api/party/invite'){
-      const b=await body(req),db=readAppDb(),friendId=String(b.friendId||''),party=partyFor(db,u.id);
+      const b=await body(req),db=readAppDb(),friendId=String(b.friendId||''),party=partyFor(db,u.id,String(b.partyId||''));
+      if(!party) return json(res,404,{error:'Party not found.'});
       if(party.ownerId!==u.id) return json(res,403,{error:'Only the party owner can invite friends.'});
       if(!areFriends(db,u.id,friendId)) return json(res,403,{error:'Invite accepted friends only.'});
       if(!party.memberIds.includes(friendId)&&!party.invitedIds.includes(friendId))party.invitedIds.push(friendId);
@@ -355,7 +392,7 @@ async function api(req,res,url){
       writeDb(db);notifyUsers([party.ownerId,u.id,...(party.memberIds||[])],'party-updated',{reason:'party-response'});return json(res,200,{ok:true});
     }
     if(req.method==='POST'&&url.pathname==='/api/party/leave'){
-      const db=readAppDb(),party=db.parties.find(p=>p.memberIds?.includes(u.id)||p.ownerId===u.id);
+      const b=await body(req),db=readAppDb(),party=partyFor(db,u.id,String(b.partyId||''));
       if(!party) return json(res,404,{error:'Party not found.'});
       party.memberIds=(party.memberIds||[]).filter(id=>id!==u.id);
       party.invitedIds=(party.invitedIds||[]).filter(id=>id!==u.id);
@@ -365,14 +402,16 @@ async function api(req,res,url){
       writeDb(db);notifyUsers(notifyIds,'party-updated',{reason:'party-leave'});return json(res,200,{ok:true});
     }
     if(req.method==='POST'&&url.pathname==='/api/party/share'){
-      const b=await body(req),db=readAppDb(),party=partyFor(db,u.id),report=db.reports.find(r=>r.id===b.reportId&&r.userId===u.id);
+      const b=await body(req),db=readAppDb(),party=partyFor(db,u.id,String(b.partyId||'')),report=db.reports.find(r=>r.id===b.reportId&&r.userId===u.id);
+      if(!party) return json(res,404,{error:'Party not found.'});
       if(!report) return json(res,404,{error:'Coaching report not found.'});
       if(!party.memberIds.includes(u.id)) return json(res,403,{error:'Join the party before sharing.'});
       if(!party.reportIds.includes(report.id))party.reportIds.unshift(report.id);
       writeDb(db);notifyUsers(party.memberIds||[],'party-updated',{reason:'party-share'});return json(res,200,{ok:true});
     }
     if(req.method==='POST'&&url.pathname==='/api/party/message'){
-      const b=await body(req),db=readAppDb(),party=partyFor(db,u.id),text=short(b.text,1000);
+      const b=await body(req),db=readAppDb(),party=partyFor(db,u.id,String(b.partyId||'')),text=short(b.text,1000);
+      if(!party) return json(res,404,{error:'Party not found.'});
       if(!party.memberIds.includes(u.id)) return json(res,403,{error:'Join the party before chatting.'});
       if(!text) return json(res,400,{error:'Type a message first.'});
       db.partyMessages.push({id:id(),partyId:party.id,from:u.id,text,createdAt:new Date().toISOString()});writeDb(db);notifyUsers(party.memberIds||[],'party-updated',{reason:'party-message'});return json(res,201,{ok:true});
@@ -388,7 +427,8 @@ async function api(req,res,url){
         db.friendMessages=db.friendMessages.filter(m=>m.id!==messageId);removed=true;
       }
       if(kind==='party-message'){
-        const party=partyFor(db,u.id),message=db.partyMessages.find(m=>m.id===messageId&&m.partyId===party.id);
+        const accessiblePartyIds=new Set(partiesFor(db,u.id).map(p=>p.id));
+        const message=db.partyMessages.find(m=>m.id===messageId&&accessiblePartyIds.has(m.partyId));
         if(!message) return json(res,404,{error:'Message not found.'});
         targetUserId=message.from;
         db.partyMessages=db.partyMessages.filter(m=>m.id!==messageId);removed=true;

@@ -61,11 +61,14 @@ test('adult account can analyze homework, gaming, and sports safely',async()=>{
   const friendInbox=await call('/api/friends',{cookie:friendCookie});assert.equal(friendInbox.data.incoming.length,1);
   const accept=await call('/api/friends/respond',{method:'POST',cookie:friendCookie,body:{requestId:friendInbox.data.incoming[0].id,accept:true}});assert.equal(accept.status,200);
   const friendChat=await call('/api/friends/chat',{method:'POST',cookie,body:{friendId:friendSignup.data.user.id,text:'Want to review this together?'}});assert.equal(friendChat.status,201);
-  const partyInvite=await call('/api/party/invite',{method:'POST',cookie,body:{friendId:friendSignup.data.user.id}});assert.equal(partyInvite.status,200);
+  const createdParty=await call('/api/party/create',{method:'POST',cookie,body:{name:'Striker Squad',theme:'stadium'}});assert.equal(createdParty.status,201);assert.equal(createdParty.data.party.theme,'stadium');
+  const renameParty=await call('/api/party/name',{method:'POST',cookie,body:{partyId:createdParty.data.party.id,name:'Friday Film Room',theme:'study'}});assert.equal(renameParty.status,200);
+  const namedParty=await call(`/api/party?partyId=${createdParty.data.party.id}`,{cookie});assert.equal(namedParty.data.party.name,'Friday Film Room');assert.equal(namedParty.data.party.theme,'study');assert.ok(namedParty.data.parties.some(p=>p.id===createdParty.data.party.id&&p.theme==='study'));
+  const partyInvite=await call('/api/party/invite',{method:'POST',cookie,body:{partyId:createdParty.data.party.id,friendId:friendSignup.data.user.id}});assert.equal(partyInvite.status,200);
   const friendPartyInvites=await call('/api/friends',{cookie:friendCookie});assert.equal(friendPartyInvites.data.partyInvites.length,1);
   const joinParty=await call('/api/party/respond',{method:'POST',cookie:friendCookie,body:{partyId:friendPartyInvites.data.partyInvites[0].id,accept:true}});assert.equal(joinParty.status,200);
-  const shareReport=await call('/api/party/share',{method:'POST',cookie,body:{reportId:gaming.data.report.id}});assert.equal(shareReport.status,200);
-  const friendParty=await call('/api/party',{cookie:friendCookie});assert.equal(friendParty.status,200);assert.equal(friendParty.data.party.reports.length,1);
+  const shareReport=await call('/api/party/share',{method:'POST',cookie,body:{partyId:createdParty.data.party.id,reportId:gaming.data.report.id}});assert.equal(shareReport.status,200);
+  const friendParty=await call(`/api/party?partyId=${createdParty.data.party.id}`,{cookie:friendCookie});assert.equal(friendParty.status,200);assert.equal(friendParty.data.party.reports.length,1);
   const deletedReport=await call(`/api/reports/${home.data.report.id}`,{method:'DELETE',cookie});assert.equal(deletedReport.status,200);
   const afterDelete=await call('/api/reports',{cookie});assert.equal(afterDelete.data.reports.length,2);
   const deletedAccount=await call('/api/account',{method:'DELETE',cookie});assert.equal(deletedAccount.status,200);
