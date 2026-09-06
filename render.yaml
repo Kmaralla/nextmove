@@ -6,6 +6,8 @@ services:
     envVars:
       - key: OPENAI_API_KEY
         sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
       - key: OPENAI_MODEL
         value: gpt-5.4-mini
       - key: APP_BASE_URL

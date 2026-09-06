@@ -25,6 +25,7 @@ const ROOT = path.join(__dirname, 'public');
 const DATA_DIR = path.join(__dirname, 'work');
 const DB_FILE = process.env.NEXTMOVE_DB_FILE || path.join(DATA_DIR, 'nextmove-db.json');
 const sessions = new Map();
+const pendingGoogleSignups = new Map();
 const types = {'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml'};
 const MINIMUM_AGE = 13;
 fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
@@ -36,7 +37,7 @@ const id = () => crypto.randomUUID();
 const token = () => crypto.randomBytes(24).toString('hex');
 const ageFrom = dob => { const d=new Date(dob), n=new Date(); if(Number.isNaN(d.getTime())||d>n)return NaN; let a=n.getFullYear()-d.getFullYear(); if(n < new Date(n.getFullYear(),d.getMonth(),d.getDate())) a--; return a; };
 const hashPassword = password => { const salt=crypto.randomBytes(16).toString('hex'); return salt+':'+crypto.scryptSync(password,salt,64).toString('hex'); };
-const checkPassword = (password, stored) => { const [salt,key]=stored.split(':'); return crypto.timingSafeEqual(Buffer.from(key,'hex'),crypto.scryptSync(password,salt,64)); };
+const checkPassword = (password, stored) => { if(!stored)return false;const [salt,key]=stored.split(':'); return crypto.timingSafeEqual(Buffer.from(key,'hex'),crypto.scryptSync(password,salt,64)); };
 function cookies(req){ return Object.fromEntries((req.headers.cookie||'').split(';').filter(Boolean).map(x=>x.trim().split('='))); }
 function userFor(req){ const uid=sessions.get(cookies(req).session); return uid && readDb().users.find(u=>u.id===uid); }
 function sessionCookie(sid){return `session=${sid}; HttpOnly; SameSite=Strict; Path=/${process.env.NODE_ENV==='production'?'; Secure':''}`;}
@@ -247,9 +248,31 @@ async function continueCoaching(report, messages, user, coach){
   return text.trim();
 }
 
+async function verifyGoogleCredential(credential){
+  loadEnvFile();const clientId=process.env.GOOGLE_CLIENT_ID;if(!clientId)throw httpError('Google sign-in is not configured yet.',503);
+  if(typeof credential!=='string'||credential.length<100||credential.length>10000)throw httpError('Google sign-in could not be verified.',400);
+  const endpoint=process.env.GOOGLE_TOKENINFO_URL||'https://oauth2.googleapis.com/tokeninfo';let response;
+  try{response=await fetch(`${endpoint}?id_token=${encodeURIComponent(credential)}`)}catch{throw httpError('Google sign-in could not be reached. Please try again.',502)}
+  const claims=await response.json().catch(()=>({})),issuer=String(claims.iss||'');
+  if(!response.ok||String(claims.aud)!==clientId||!['accounts.google.com','https://accounts.google.com'].includes(issuer)||Number(claims.exp)*1000<=Date.now()||String(claims.email_verified)!=='true'||!claims.sub||!claims.email)throw httpError('Google sign-in could not be verified.',401);
+  return {sub:short(claims.sub,200),email:String(claims.email).toLowerCase(),name:short(claims.name||claims.given_name||'NextMove learner',80)};
+}
+
 async function api(req,res,url){
   try{
     if(req.method==='GET'&&url.pathname==='/api/health'){loadEnvFile();return json(res,200,{ok:true,aiConfigured:!!process.env.OPENAI_API_KEY});}
+    if(req.method==='GET'&&url.pathname==='/api/auth/config'){loadEnvFile();return json(res,200,{googleClientId:process.env.GOOGLE_CLIENT_ID||null});}
+    if(req.method==='POST'&&url.pathname==='/api/auth/google'){
+      const identity=await verifyGoogleCredential((await body(req)).credential),db=readAppDb();let u=db.users.find(x=>x.googleSub===identity.sub||String(x.email).toLowerCase()===identity.email);
+      if(u){if(u.googleSub&&u.googleSub!==identity.sub)return json(res,409,{error:'This email is linked to another Google account.'});u.googleSub=identity.sub;writeDb(db);const sid=token();sessions.set(sid,u.id);res.setHeader('Set-Cookie',sessionCookie(sid));return json(res,200,{user:publicUser(u)});}
+      const signupToken=token();pendingGoogleSignups.set(signupToken,{...identity,expiresAt:Date.now()+10*60*1000});return json(res,202,{needsProfile:true,signupToken,name:identity.name,email:identity.email});
+    }
+    if(req.method==='POST'&&url.pathname==='/api/auth/google/complete'){
+      const b=await body(req),pending=pendingGoogleSignups.get(String(b.signupToken||''));if(!pending||pending.expiresAt<Date.now()){pendingGoogleSignups.delete(String(b.signupToken||''));return json(res,401,{error:'Google signup expired. Please continue with Google again.'});}
+      const age=ageFrom(b.dob);if(!b.name||!b.dob||!Number.isFinite(age)||age<5)return json(res,400,{error:'Please enter a valid date of birth that is not in the future.'});if(age<MINIMUM_AGE)return json(res,403,{error:'NextMove is available only for learners age 13 and older in this public MVP.'});if(age<18&&b.guardianPermission!==true)return json(res,400,{error:'Learners ages 1317 must confirm they have parent or guardian permission.'});if(b.acceptTerms!==true)return json(res,400,{error:'You must confirm you are 13+ and agree to the Terms and Privacy Notice.'});
+      const db=readAppDb(),username=normalizeUsername(b.username);if(username.length<3)return json(res,400,{error:'Choose a username with at least 3 letters, numbers, or underscores.'});if(db.users.some(x=>x.username===username))return json(res,409,{error:'That username is already taken.'});if(db.users.some(x=>String(x.email).toLowerCase()===pending.email))return json(res,409,{error:'An account already exists for this email. Continue with Google again.'});
+      const now=new Date().toISOString(),u={id:id(),name:short(b.name,80),username,email:pending.email,password:null,googleSub:pending.sub,age,role:'learner',guardianPermissionConfirmed:age<18,termsAcceptedAt:now,privacyAcceptedAt:now,termsVersion:'2026-07-26',createdAt:now};db.users.push(u);writeDb(db);pendingGoogleSignups.delete(String(b.signupToken||''));const sid=token();sessions.set(sid,u.id);res.setHeader('Set-Cookie',sessionCookie(sid));return json(res,201,{user:publicUser(u)});
+    }
     if(req.method==='POST'&&url.pathname==='/api/signup'){
       const b=await body(req); const age=ageFrom(b.dob);
       if(!b.name||!b.email||!b.password||!b.dob||!Number.isFinite(age)||age<5) return json(res,400,{error:'Please enter a valid date of birth that is not in the future.'});
@@ -270,7 +293,7 @@ async function api(req,res,url){
     }
     if(req.method==='POST'&&url.pathname==='/api/login'){
       const b=await body(req),db=readDb(),u=db.users.find(x=>x.email===String(b.email||'').toLowerCase());
-      if(!u||!checkPassword(b.password||'',u.password)) return json(res,401,{error:'Incorrect email or password.'});
+      if(!u||!u.password||!checkPassword(b.password||'',u.password)) return json(res,401,{error:'Incorrect email or password.'});
       const sid=token();sessions.set(sid,u.id);res.setHeader('Set-Cookie',sessionCookie(sid));return json(res,200,{user:publicUser(u)});
     }
     if(req.method==='POST'&&url.pathname==='/api/logout'){const sid=cookies(req).session;sessions.delete(sid);res.setHeader('Set-Cookie','session=; Max-Age=0; Path=/');return json(res,200,{ok:true});}
@@ -475,7 +498,7 @@ function handleRequest(req,res){
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('Referrer-Policy','same-origin');
   res.setHeader('Permissions-Policy','camera=(), microphone=(), geolocation=()');
-  res.setHeader('Content-Security-Policy',"default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; script-src 'self' 'unsafe-inline'; base-uri 'self'; frame-ancestors 'none'");
+  res.setHeader('Content-Security-Policy',"default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://accounts.google.com; script-src 'self' 'unsafe-inline' https://accounts.google.com; base-uri 'self'; frame-ancestors 'none'");
   const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);
   if(url.pathname.startsWith('/api/'))return api(req,res,url);
   const requested=url.pathname==='/'?'/index.html':url.pathname;

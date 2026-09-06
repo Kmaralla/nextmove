@@ -23,8 +23,8 @@ async function call(route,{method='GET',body,cookie}={}){
 }
 
 test.before(async()=>{
-  ai=http.createServer((req,res)=>{let raw='';req.on('data',c=>raw+=c);req.on('end',()=>{const request=JSON.parse(raw||'{}');const chat=typeof request.input==='string';const report={title:'Test coaching report',summary:'Specific feedback from the supplied material.',observations:[{label:'Visible moment',detail:'Use this evidence to choose the next step.'}],strengths:['Effort'],improvements:['Timing'],drill:'Practice one focused repetition.',nextFocus:'Repeat and review.'};res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify({output_text:chat?'Keep working through the next step.':JSON.stringify(report)}))})});
-  const aiPort=await listen(ai);process.env.OPENAI_API_URL=`http://127.0.0.1:${aiPort}`;
+  ai=http.createServer((req,res)=>{let raw='';req.on('data',c=>raw+=c);req.on('end',()=>{if(req.url.startsWith('/tokeninfo')){res.writeHead(200,{'Content-Type':'application/json'});return res.end(JSON.stringify({aud:'test-google-client',iss:'https://accounts.google.com',exp:String(Math.floor(Date.now()/1000)+3600),email_verified:true,sub:'google-user-1',email:'google@example.test',name:'Google Learner'}))}const request=JSON.parse(raw||'{}');const chat=typeof request.input==='string';const report={title:'Test coaching report',summary:'Specific feedback from the supplied material.',observations:[{label:'Visible moment',detail:'Use this evidence to choose the next step.'}],strengths:['Effort'],improvements:['Timing'],drill:'Practice one focused repetition.',nextFocus:'Repeat and review.'};res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify({output_text:chat?'Keep working through the next step.':JSON.stringify(report)}))})});
+  const aiPort=await listen(ai);process.env.OPENAI_API_URL=`http://127.0.0.1:${aiPort}`;process.env.GOOGLE_TOKENINFO_URL=`http://127.0.0.1:${aiPort}/tokeninfo`;process.env.GOOGLE_CLIENT_ID='test-google-client';
   app=createServer();const port=await listen(app);base=`http://127.0.0.1:${port}`;
 });
 test.after(async()=>{await close(app);await close(ai)});
@@ -75,6 +75,14 @@ test('adult account can analyze homework, gaming, and sports safely',async()=>{
   const afterAccountDelete=await call('/api/me',{cookie});assert.equal(afterAccountDelete.status,200);assert.equal(afterAccountDelete.data.user,null);
 });
 
+test('Google sign-in creates a verified 13+ account without a password',async()=>{
+  const config=await call('/api/auth/config');assert.equal(config.data.googleClientId,'test-google-client');
+  const google=await call('/api/auth/google',{method:'POST',body:{credential:'x'.repeat(120)}});assert.equal(google.status,202);assert.equal(google.data.needsProfile,true);
+  const complete=await call('/api/auth/google/complete',{method:'POST',body:{signupToken:google.data.signupToken,name:'Google Learner',username:'googlelearner',dob:dobForAge(18),acceptTerms:true,guardianPermission:true}});assert.equal(complete.status,201);assert.equal(complete.data.user.email,'google@example.test');const cookie=complete.cookie.split(';')[0];
+  const me=await call('/api/me',{cookie});assert.equal(me.data.user.username,'googlelearner');
+  const again=await call('/api/auth/google',{method:'POST',body:{credential:'y'.repeat(120)}});assert.equal(again.status,200);assert.equal(again.data.user.email,'google@example.test');
+});
+
 test('under-13 accounts are blocked in the public MVP',async()=>{
   const response=await call('/api/signup',{method:'POST',body:{name:'Young Learner',email:'young@example.test',password:'password123',dob:dobForAge(11)}});
   assert.equal(response.status,403);assert.match(response.data.error,/13 and older/);
@@ -86,5 +94,5 @@ test('under-10 accounts are also blocked',async()=>{
 });
 
 test('responses include privacy and browser safety headers',async()=>{
-  const response=await fetch(base+'/');assert.equal(response.status,200);assert.equal(response.headers.get('x-content-type-options'),'nosniff');assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'none'/);
+  const response=await fetch(base+'/');assert.equal(response.status,200);assert.equal(response.headers.get('x-content-type-options'),'nosniff');assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'none'/);assert.match(response.headers.get('content-security-policy'),/accounts\.google\.com/);
 });
