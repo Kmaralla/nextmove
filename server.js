@@ -268,13 +268,13 @@ async function streamElevenLabsSpeech(res,{text,coach}){
   loadEnvFile();if(!process.env.ELEVENLABS_API_KEY)throw httpError('ElevenLabs voice is not configured yet.',503);
   const voice=elevenLabsVoice(coach),base=process.env.ELEVENLABS_API_URL||'https://api.elevenlabs.io/v1/text-to-speech';let response;
   try{response=await fetch(`${base}/${encodeURIComponent(voice)}/stream?output_format=mp3_44100_128`,{method:'POST',headers:{'xi-api-key':process.env.ELEVENLABS_API_KEY,'Content-Type':'application/json','Accept':'audio/mpeg'},body:JSON.stringify({text,model_id:process.env.ELEVENLABS_MODEL_ID||'eleven_flash_v2_5',voice_settings:{stability:.5,similarity_boost:.75,speed:1}})})}catch{throw httpError('ElevenLabs voice could not be reached. Please try again.',502)}
-  if(!response.ok){const detail=await response.json().catch(()=>({}));throw httpError(detail.detail?.message||detail.detail||'ElevenLabs could not generate this voice.',502)}
+  if(!response.ok){const detail=await response.json().catch(()=>({}));throw httpError((typeof detail.detail==='string'?detail.detail:detail.detail?.message)||detail.message||'ElevenLabs could not generate this voice.',502)}
   const audio=Buffer.from(await response.arrayBuffer());if(!audio.length||audio.length>8*1024*1024)throw httpError('The generated voice response was invalid.',502);res.writeHead(200,{'Content-Type':'audio/mpeg','Content-Length':audio.length,'Cache-Control':'private, no-store'});res.end(audio);
 }
 
 async function api(req,res,url){
   try{
-    if(req.method==='GET'&&url.pathname==='/api/health'){loadEnvFile();return json(res,200,{ok:true,aiConfigured:!!process.env.OPENAI_API_KEY});}
+    if(req.method==='GET'&&url.pathname==='/api/health'){loadEnvFile();return json(res,200,{ok:true,aiConfigured:!!process.env.OPENAI_API_KEY,elevenLabsConfigured:!!process.env.ELEVENLABS_API_KEY});}
     if(req.method==='GET'&&url.pathname==='/api/auth/config'){loadEnvFile();return json(res,200,{googleClientId:process.env.GOOGLE_CLIENT_ID||null});}
     if(req.method==='POST'&&url.pathname==='/api/auth/google'){
       const identity=await verifyGoogleCredential((await body(req)).credential),db=readAppDb();let u=db.users.find(x=>x.googleSub===identity.sub||String(x.email).toLowerCase()===identity.email);
@@ -489,7 +489,7 @@ async function api(req,res,url){
     }
     if(req.method==='POST'&&url.pathname==='/api/speech'){
       if(!canUseCoaching(u))return json(res,403,{error:accessBlockMessage(u)});if(!allowSpeech(u.id))return json(res,429,{error:'Please wait a moment before generating more voice audio.'});
-      const b=await body(req),text=short(b.text,1800),report=readAppDb().reports.find(r=>r.id===String(b.reportId||'')&&r.userId===u.id);if(!report)return json(res,404,{error:'Coaching report not found.'});if(!text)return json(res,400,{error:'There is no coaching text to read.'});return streamElevenLabsSpeech(res,{text,coach:short(b.coach||report.coach||report.report?.coach,40)});
+      const b=await body(req),text=short(b.text,1800),report=readAppDb().reports.find(r=>r.id===String(b.reportId||'')&&r.userId===u.id);if(!report)return json(res,404,{error:'Coaching report not found.'});if(!text)return json(res,400,{error:'There is no coaching text to read.'});return await streamElevenLabsSpeech(res,{text,coach:short(b.coach||report.coach||report.report?.coach,40)});
     }
     if(req.method==='POST'&&url.pathname==='/api/chat'){
       if(!canUseCoaching(u)) return json(res,403,{error:accessBlockMessage(u)});
