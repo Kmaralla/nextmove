@@ -26,6 +26,7 @@ const DATA_DIR = path.join(__dirname, 'work');
 const DB_FILE = process.env.NEXTMOVE_DB_FILE || path.join(DATA_DIR, 'nextmove-db.json');
 const sessions = new Map();
 const pendingGoogleSignups = new Map();
+const speechUsage = new Map();
 const types = {'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml'};
 const MINIMUM_AGE = 13;
 fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
@@ -258,6 +259,19 @@ async function verifyGoogleCredential(credential){
   return {sub:short(claims.sub,200),email:String(claims.email).toLowerCase(),name:short(claims.name||claims.given_name||'NextMove learner',80)};
 }
 
+function elevenLabsVoice(coach){
+  let voices={};try{voices=JSON.parse(process.env.ELEVENLABS_VOICE_MAP||'{}')}catch{}
+  const voice=String(voices[coach]||process.env.ELEVENLABS_VOICE_ID||'JBFqnCBsd6RMkjVDRZzb');return /^[A-Za-z0-9_-]{10,64}$/.test(voice)?voice:'JBFqnCBsd6RMkjVDRZzb';
+}
+function allowSpeech(userId){const now=Date.now(),recent=(speechUsage.get(userId)||[]).filter(time=>now-time<60000);if(recent.length>=20)return false;recent.push(now);speechUsage.set(userId,recent);return true;}
+async function streamElevenLabsSpeech(res,{text,coach}){
+  loadEnvFile();if(!process.env.ELEVENLABS_API_KEY)throw httpError('ElevenLabs voice is not configured yet.',503);
+  const voice=elevenLabsVoice(coach),base=process.env.ELEVENLABS_API_URL||'https://api.elevenlabs.io/v1/text-to-speech';let response;
+  try{response=await fetch(`${base}/${encodeURIComponent(voice)}/stream?output_format=mp3_44100_128`,{method:'POST',headers:{'xi-api-key':process.env.ELEVENLABS_API_KEY,'Content-Type':'application/json','Accept':'audio/mpeg'},body:JSON.stringify({text,model_id:process.env.ELEVENLABS_MODEL_ID||'eleven_flash_v2_5',voice_settings:{stability:.5,similarity_boost:.75,speed:1}})})}catch{throw httpError('ElevenLabs voice could not be reached. Please try again.',502)}
+  if(!response.ok){const detail=await response.json().catch(()=>({}));throw httpError(detail.detail?.message||detail.detail||'ElevenLabs could not generate this voice.',502)}
+  const audio=Buffer.from(await response.arrayBuffer());if(!audio.length||audio.length>8*1024*1024)throw httpError('The generated voice response was invalid.',502);res.writeHead(200,{'Content-Type':'audio/mpeg','Content-Length':audio.length,'Cache-Control':'private, no-store'});res.end(audio);
+}
+
 async function api(req,res,url){
   try{
     if(req.method==='GET'&&url.pathname==='/api/health'){loadEnvFile();return json(res,200,{ok:true,aiConfigured:!!process.env.OPENAI_API_KEY});}
@@ -472,6 +486,10 @@ async function api(req,res,url){
       db.partyMessages=db.partyMessages.filter(m=>m.from!==u.id);
       for(const [sid,uid] of sessions.entries()) if(uid===u.id) sessions.delete(sid);
       writeDb(db);res.setHeader('Set-Cookie','session=; Max-Age=0; Path=/');return json(res,200,{ok:true});
+    }
+    if(req.method==='POST'&&url.pathname==='/api/speech'){
+      if(!canUseCoaching(u))return json(res,403,{error:accessBlockMessage(u)});if(!allowSpeech(u.id))return json(res,429,{error:'Please wait a moment before generating more voice audio.'});
+      const b=await body(req),text=short(b.text,1800),report=readAppDb().reports.find(r=>r.id===String(b.reportId||'')&&r.userId===u.id);if(!report)return json(res,404,{error:'Coaching report not found.'});if(!text)return json(res,400,{error:'There is no coaching text to read.'});return streamElevenLabsSpeech(res,{text,coach:short(b.coach||report.coach||report.report?.coach,40)});
     }
     if(req.method==='POST'&&url.pathname==='/api/chat'){
       if(!canUseCoaching(u)) return json(res,403,{error:accessBlockMessage(u)});
