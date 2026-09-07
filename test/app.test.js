@@ -94,5 +94,5 @@ test('under-10 accounts are also blocked',async()=>{
 });
 
 test('responses include privacy and browser safety headers',async()=>{
-  const response=await fetch(base+'/');assert.equal(response.status,200);assert.equal(response.headers.get('x-content-type-options'),'nosniff');assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'none'/);assert.match(response.headers.get('content-security-policy'),/accounts\.google\.com/);
+  const response=await fetch(base+'/');assert.equal(response.status,200);assert.equal(response.headers.get('x-content-type-options'),'nosniff');assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'none'/);assert.match(response.headers.get('content-security-policy'),/accounts\.google\.com/);assert.equal(response.headers.get('cross-origin-opener-policy'),'same-origin-allow-popups');
 });
