@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -96,7 +96,7 @@
           <article class="quick-card" data-view="homework">
             <i class="purple">✎</i>
             <h3>Homework Tutor</h3>
-            <p>Guides step by step without giving the final answer.</p>
+            <p>Guides step by step, then unlocks the answer after five minutes.</p>
           </article>
           <article class="quick-card" data-view="gaming">
             <i class="green">⌁</i>
@@ -328,7 +328,7 @@
         <div class="report-grid" id="reportGrid"></div>
         <div class="next-focus"><div><small>YOUR NEXT MOVE</small><h3 id="nextFocus"></h3></div></div>
         <div class="reward-claim hidden" id="rewardClaim"><div><span class="reward-gem nm-coin" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M7 17L17 7M10 7h7v7"/></svg></span><div><small>REVIEW COMPLETE</small><h3 id="rewardHeading">NextMove Coins earned</h3><p>Homework earns 5, Sports earns 3, and Gaming earns 1 coin.</p></div></div><button class="dark-btn" id="claimReward" disabled>Coins added!</button></div>
-        <section class="coach-chat" id="coachChat"><div class="chat-head"><div class="chat-coach-avatar" id="chatCoachAvatar"></div><div><small>KEEP THE CONVERSATION GOING</small><h3 id="chatTitle">Ask your coach</h3><p>Your coach remembers this report.</p></div><span class="chat-online">ONLINE</span></div><div class="chat-messages" id="chatMessages" aria-live="polite"></div><div class="voice-chat-controls" id="voiceChatPanel"><label><input type="checkbox" id="voiceAutoReply"> Read coach replies</label><small id="voiceChatStatus">Coach replies off</small></div><form class="chat-form" id="chatForm"><input id="chatInput" maxlength="2000" autocomplete="off" placeholder="Ask a follow-up question…" aria-label="Ask your coach a question"><button class="dark-btn" id="chatSend">Send →</button></form><p class="form-error" id="chatError"></p></section>
+        <section class="coach-chat" id="coachChat"><div class="chat-head"><div class="chat-coach-avatar" id="chatCoachAvatar"></div><div><small>KEEP THE CONVERSATION GOING</small><h3 id="chatTitle">Ask your coach</h3><p>Your coach remembers this report.</p></div><span class="chat-online">ONLINE</span></div><div class="chat-messages" id="chatMessages" aria-live="polite"></div><div class="voice-chat-controls" id="voiceChatPanel"><label><input type="checkbox" id="voiceAutoReply"> Read coach replies</label><small id="voiceChatStatus">Coach replies off</small></div><div class="answer-unlock hidden" id="answerUnlock"><button class="outline-btn" id="giveAnswer" disabled>Give answer</button><small id="answerUnlockStatus">Available after 5:00</small></div><form class="chat-form" id="chatForm"><input id="chatInput" maxlength="2000" autocomplete="off" placeholder="Ask a follow-up question…" aria-label="Ask your coach a question"><button class="dark-btn" id="chatSend">Send →</button></form><p class="form-error" id="chatError"></p></section>
       </section>
 
       <section class="view" id="quizView"><div class="quiz-hero"><div><span class="kicker">PRACTICE FROM YOUR FEEDBACK</span><h2>Quiz Yourself</h2><p>Choose a saved coaching report, recall the key feedback, and turn your next move into a habit.</p></div><span class="quiz-hero-mark">?</span></div><div class="section-title compact-title"><div><span class="kicker">CHOOSE A TOPIC</span><h2>Your report quizzes</h2></div><p>Each quiz uses the coaching cues from one saved report.</p></div><div id="quizLibrary" class="quiz-library"></div><section class="report-quiz hidden" id="reportQuiz"><div class="quiz-callout" id="quizCallout"><div><small>READY TO PRACTICE</small><h3 id="selectedQuizTitle">Quiz Yourself</h3><p>Answer three quick questions based on this report.</p></div><button class="dark-btn" id="startReportQuiz">Start quiz</button></div><div class="quiz-player hidden" id="quizPlayer"><small id="reportQuizProgress"></small><h3 id="reportQuizPrompt"></h3><div id="reportQuizOptions" class="report-quiz-options"></div><div id="reportQuizFeedback" class="quiz-feedback hidden"><b id="reportQuizVerdict"></b><p id="reportQuizExplanation"></p><button class="dark-btn" id="nextReportQuiz">Next question</button></div></div></section></section>

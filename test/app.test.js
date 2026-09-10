@@ -46,6 +46,8 @@ test('adult account can analyze homework, gaming, and sports safely',async()=>{
   assert.equal(home.status,200);assert.equal(home.data.report.mode,'homework');
   const chat=await call('/api/chat',{method:'POST',cookie,body:{reportId:home.data.report.id,coach:'Maya',messages:[{role:'user',content:'Can you explain the first hint another way?'}]}});
   assert.equal(chat.status,200);assert.match(chat.data.reply,/next step/i);
+  const earlyAnswer=await call('/api/chat',{method:'POST',cookie,body:{reportId:home.data.report.id,coach:'Maya',giveAnswer:true,messages:[{role:'user',content:'Give me the answer.'}]}});
+  assert.equal(earlyAnswer.status,425);assert.match(earlyAnswer.data.error,/after five minutes/i);
   const gaming=await call('/api/analyze',{method:'POST',cookie,body:{mode:'gaming',meta:{game:'Rocket League',role:'Ranked',coach:'Byte'},frames:frames()}});
   assert.equal(gaming.status,200);assert.equal(gaming.data.report.mode,'gaming');
   const sportsFace=await call('/api/analyze',{method:'POST',cookie,body:{mode:'sports',meta:{sport:'Soccer',position:'Forward',coach:'Kai'},frames:frames(),faceReference:image}});

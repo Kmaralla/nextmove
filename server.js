@@ -29,6 +29,7 @@ const pendingGoogleSignups = new Map();
 const speechUsage = new Map();
 const types = {'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml'};
 const MINIMUM_AGE = 13;
+const ANSWER_WAIT_MS = 5 * 60 * 1000;
 fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
 if (!fs.existsSync(DB_FILE)) fs.writeFileSync(DB_FILE, JSON.stringify({users:[],reports:[]}, null, 2));
 
@@ -229,11 +230,11 @@ async function analyzeWithAI(payload, user){
   try{const parsed=JSON.parse(cleaned);if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw new Error();return parsed}catch{throw Object.assign(new Error('The AI report was not valid JSON. Please try the analysis again.'),{status:502})}
 }
 
-async function continueCoaching(report, messages, user, coach){
+async function continueCoaching(report, messages, user, coach, giveAnswer=false){
   loadEnvFile();
   if(!process.env.OPENAI_API_KEY) throw Object.assign(new Error('AI is not configured. Add OPENAI_API_KEY to the server environment.'),{status:503});
   const mode=report.mode,ageBand=user.age<18?'teen':'adult';
-  const integrity=mode==='homework'?'Academic integrity is absolute: never provide the final answer, complete the assignment, or solve graded work. If the learner asks for the answer, refuse briefly and give a hint, guiding question, or concept explanation instead.':'Only discuss coaching supported by the saved report. Be honest when the report does not contain enough evidence.';
+  const integrity=mode==='homework'?(giveAnswer?'The learner has completed the required five-minute attempt period and explicitly selected Give answer. Provide the final answer now, with a short explanation of the key steps. If the saved report does not contain enough information to determine an exact answer, say exactly what information is missing instead of inventing it.':'Do not provide the final answer yet. The learner must spend at least five minutes with the report before the Give answer option unlocks. Until then, give a hint, guiding question, or concept explanation instead.'):'Only discuss coaching supported by the saved report. Be honest when the report does not contain enough evidence.';
   const sportsSafety=mode==='sports'?'Sports safety: do not diagnose injuries, provide medical advice, recommend playing through pain, or replace a coach/clinician. If pain or injury is mentioned, tell the learner to stop and ask a qualified adult, coach, clinician, or professional.':'';
   const nowText=new Intl.DateTimeFormat('en-US',{dateStyle:'long',timeZone:'America/New_York'}).format(new Date());
   const instructions=`Current date: ${nowText}. Treat events before this date as already happened. If asked about recent sports, games, releases, teams, tournaments, or public events and you are not certain, say you may be out of date instead of guessing. You are ${coach||'the NextMove coach'}, continuing a ${mode} coaching conversation with ${user.name}, a learner in the ${ageBand} age band. Be warm, concise, specific, and conversational. ${integrity} ${sportsSafety} Do not infer sensitive traits or identify real-world people. The saved coaching report is your source of context.`;
@@ -495,10 +496,14 @@ async function api(req,res,url){
       if(!canUseCoaching(u)) return json(res,403,{error:accessBlockMessage(u)});
       const b=await body(req),report=readAppDb().reports.find(r=>r.id===b.reportId&&r.userId===u.id);
       if(!report) return json(res,404,{error:'Coaching report not found.'});
+      const giveAnswer=b.giveAnswer===true;
+      if(giveAnswer&&report.mode!=='homework')return json(res,400,{error:'The Give answer option is only available for homework reports.'});
+      const answerUnlockAt=new Date(report.createdAt).getTime()+ANSWER_WAIT_MS;
+      if(giveAnswer&&(!Number.isFinite(answerUnlockAt)||Date.now()<answerUnlockAt))return json(res,425,{error:'Give answer unlocks after five minutes of practice.',answerUnlockAt:new Date(answerUnlockAt).toISOString()});
       let reply;
-      try{reply=await continueCoaching(report,b.messages,u,String(b.coach||'NextMove Coach').slice(0,40))}
+      try{reply=await continueCoaching(report,b.messages,u,String(b.coach||'NextMove Coach').slice(0,40),giveAnswer)}
       catch(error){if(!isAiReachabilityError(error))throw error;console.warn(error.message);reply='I can’t reach the live AI coach from this local server right now, but you can still use the report above. Pick one observation, try the focused drill, then re-run chat when the server has OpenAI network access.'}
-      return json(res,200,{reply});
+      return json(res,200,{reply,answerUnlockAt:report.mode==='homework'?new Date(answerUnlockAt).toISOString():null});
     }
     if(req.method==='POST'&&url.pathname==='/api/analyze'){
       if(!canUseCoaching(u)) return json(res,403,{error:accessBlockMessage(u)});
